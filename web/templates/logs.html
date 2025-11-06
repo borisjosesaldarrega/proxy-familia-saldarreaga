@@ -2,18 +2,568 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Logs del Proxy</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📜 Logs del Proxy - Proxy Familiar</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            margin-bottom: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header h1 {
+            color: #2d3748;
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header h1::before {
+            content: "📜";
+            font-size: 1.5em;
+        }
+
+        .subtitle {
+            color: #718096;
+            font-size: 1.1em;
+            margin-bottom: 20px;
+        }
+
+        .user-info {
+            background: #e2e8f0;
+            padding: 12px 20px;
+            border-radius: 8px;
+            display: inline-block;
+            font-weight: 500;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #4a5568;
+            display: block;
+        }
+
+        .stat-label {
+            color: #718096;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .logs-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .logs-header {
+            background: linear-gradient(135deg, #4a5568, #2d3748);
+            color: white;
+            padding: 20px 25px;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .logs-header h2 {
+            font-size: 1.5em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+        }
+
+        .btn-primary {
+            background: #4299e1;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #3182ce;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #38a169;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #a0aec0;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #718096;
+            transform: translateY(-2px);
+        }
+
+        .logs-table-container {
+            overflow-x: auto;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .logs-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9em;
+        }
+
+        .logs-table th {
+            background: #f7fafc;
+            padding: 15px 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #4a5568;
+            border-bottom: 2px solid #e2e8f0;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .logs-table td {
+            padding: 12px;
+            border-bottom: 1px solid #edf2f7;
+            vertical-align: top;
+        }
+
+        .logs-table tr:hover {
+            background: #f7fafc;
+        }
+
+        .domain {
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .url {
+            color: #4a5568;
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .status {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 600;
+            text-align: center;
+            display: inline-block;
+            min-width: 60px;
+        }
+
+        .status-blocked {
+            background: #fed7d7;
+            color: #c53030;
+        }
+
+        .status-allowed {
+            background: #c6f6d5;
+            color: #276749;
+        }
+
+        .status-cached {
+            background: #bee3f8;
+            color: #2c5aa0;
+        }
+
+        .timestamp {
+            color: #718096;
+            font-size: 0.85em;
+            white-space: nowrap;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            gap: 15px;
+            background: #f7fafc;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .page-info {
+            color: #718096;
+            font-weight: 500;
+        }
+
+        .page-btn {
+            padding: 8px 16px;
+            border: 1px solid #cbd5e0;
+            background: white;
+            color: #4a5568;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .page-btn:hover:not(:disabled) {
+            background: #4299e1;
+            color: white;
+            border-color: #4299e1;
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .current-page {
+            background: #4299e1;
+            color: white;
+            border-color: #4299e1;
+        }
+
+        .no-logs {
+            text-align: center;
+            padding: 60px 20px;
+            color: #718096;
+        }
+
+        .no-logs-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .filters {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            padding: 8px 12px;
+            border: 1px solid #cbd5e0;
+            border-radius: 6px;
+            background: white;
+            color: #4a5568;
+            font-size: 0.9em;
+        }
+
+        .search-box {
+            padding: 8px 12px;
+            border: 1px solid #cbd5e0;
+            border-radius: 6px;
+            font-size: 0.9em;
+            min-width: 200px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+            
+            .stat-number {
+                font-size: 2em;
+            }
+            
+            .logs-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .controls {
+                justify-content: center;
+            }
+            
+            .url {
+                max-width: 200px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .logs-table {
+                font-size: 0.8em;
+            }
+            
+            .logs-table td, .logs-table th {
+                padding: 8px;
+            }
+            
+            .btn {
+                padding: 8px 16px;
+                font-size: 0.85em;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h1>📜 Logs recientes del Proxy</h1>
-    {% if logs %}
-        <ul>
-        {% for log in logs %}
-            <li>{{ log }}</li>
-        {% endfor %}
-        </ul>
-    {% else %}
-        <p>No hay registros recientes.</p>
-    {% endif %}
+    <div class="container">
+        <div class="header">
+            <h1>📜 Logs del Proxy</h1>
+            <p class="subtitle">Monitoriza toda la actividad del proxy en tiempo real</p>
+            <div class="user-info">
+                👤 {{ username }} ({{ role }}) 
+            </div>
+            
+            <div class="nav-links">
+                <a href="/" class="btn btn-secondary">🏠 Dashboard</a>
+                <a href="/api/export_logs" class="btn btn-success" target="_blank">📥 Exportar Logs</a>
+                <a href="/logout" class="btn btn-secondary">🚪 Cerrar Sesión</a>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-number">{{ total }}</span>
+                <span class="stat-label">Total de Registros</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">{{ (total / limit)|round|int if total > 0 else 0 }}</span>
+                <span class="stat-label">Páginas Totales</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">{{ limit }}</span>
+                <span class="stat-label">Registros por Página</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">{{ page }}</span>
+                <span class="stat-label">Página Actual</span>
+            </div>
+        </div>
+
+        <div class="logs-container">
+            <div class="logs-header">
+                <h2>📋 Registros de Actividad</h2>
+                <div class="controls">
+                    <input type="text" class="search-box" placeholder="🔍 Buscar en logs..." id="searchInput">
+                    <select class="filter-select" id="statusFilter">
+                        <option value="">Todos los estados</option>
+                        <option value="blocked">Bloqueados</option>
+                        <option value="allowed">Permitidos</option>
+                        <option value="cached">En caché</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="clearFilters()">🔄 Limpiar Filtros</button>
+                    <button class="btn btn-success" onclick="refreshLogs()">🔄 Actualizar</button>
+                </div>
+            </div>
+
+            <div class="logs-table-container">
+                {% if logs %}
+                <table class="logs-table">
+                    <thead>
+                        <tr>
+                            <th>Dominio</th>
+                            <th>URL</th>
+                            <th>Estado</th>
+                            <th>Fecha y Hora</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in logs %}
+                        <tr class="log-row">
+                            <td>
+                                <span class="domain">{{ log[0] or 'N/A' }}</span>
+                            </td>
+                            <td>
+                                <span class="url" title="{{ log[1] }}">{{ log[1] or 'N/A' }}</span>
+                            </td>
+                            <td>
+                                {% if 'blocked' in log[2]|lower or 'denied' in log[2]|lower %}
+                                <span class="status status-blocked">🚫 Bloqueado</span>
+                                {% elif 'allowed' in log[2]|lower or 'permitted' in log[2]|lower %}
+                                <span class="status status-allowed">✅ Permitido</span>
+                                {% elif 'cached' in log[2]|lower %}
+                                <span class="status status-cached">💾 En caché</span>
+                                {% else %}
+                                <span class="status">{{ log[2] or 'N/A' }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="timestamp">
+                                    {% if log[3] %}
+                                        {{ log[3].strftime('%Y-%m-%d %H:%M:%S') if log[3] is string else log[3] }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="no-logs">
+                    <div class="no-logs-icon">📭</div>
+                    <h3>No hay registros recientes</h3>
+                    <p>La actividad del proxy aparecerá aquí cuando se realicen solicitudes.</p>
+                </div>
+                {% endif %}
+            </div>
+
+            {% if logs and total > limit %}
+            <div class="pagination">
+                {% if page > 1 %}
+                <a href="?page={{ page - 1 }}" class="page-btn">← Anterior</a>
+                {% else %}
+                <span class="page-btn" disabled>← Anterior</span>
+                {% endif %}
+                
+                <span class="page-info">Página {{ page }} de {{ (total / limit)|round(0, 'ceil')|int }}</span>
+                
+                {% if page * limit < total %}
+                <a href="?page={{ page + 1 }}" class="page-btn">Siguiente →</a>
+                {% else %}
+                <span class="page-btn" disabled>Siguiente →</span>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        // Filtrado de logs en el cliente
+        function filterLogs() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            const rows = document.querySelectorAll('.log-row');
+            
+            rows.forEach(row => {
+                const domain = row.querySelector('.domain').textContent.toLowerCase();
+                const url = row.querySelector('.url').textContent.toLowerCase();
+                const status = row.querySelector('.status').textContent.toLowerCase();
+                let show = true;
+                
+                // Filtro de búsqueda
+                if (searchTerm && !domain.includes(searchTerm) && !url.includes(searchTerm)) {
+                    show = false;
+                }
+                
+                // Filtro de estado
+                if (statusFilter) {
+                    if (statusFilter === 'blocked' && !status.includes('bloqueado')) show = false;
+                    if (statusFilter === 'allowed' && !status.includes('permitido')) show = false;
+                    if (statusFilter === 'cached' && !status.includes('caché')) show = false;
+                }
+                
+                row.style.display = show ? '' : 'none';
+            });
+        }
+        
+        function clearFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('statusFilter').value = '';
+            filterLogs();
+        }
+        
+        function refreshLogs() {
+            window.location.reload();
+        }
+        
+        // Event listeners
+        document.getElementById('searchInput').addEventListener('input', filterLogs);
+        document.getElementById('statusFilter').addEventListener('change', filterLogs);
+        
+        // Auto-refresh cada 30 segundos (opcional)
+        setInterval(refreshLogs, 30000);
+        
+        // Mensaje de auto-refresh
+        console.log('🔄 Los logs se actualizarán automáticamente cada 30 segundos');
+    </script>
 </body>
 </html>
