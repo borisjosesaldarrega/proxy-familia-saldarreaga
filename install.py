@@ -42,8 +42,8 @@ def main():
         "waitress==3.0.2",
         "werkzeug==3.0.1",
         "aiohttp==3.9.1",
-        "yarl==1.9.2",
-        "frozenlist==1.4.0",
+        "git+https://github.com/aio-libs/yarl.git",
+        "git+https://github.com/aio-libs/frozenlist.git",
         "aiosignal==1.3.1",
         "aiosqlite==0.20.0",
         "asyncio",
@@ -61,7 +61,6 @@ def main():
         "multidict==6.0.4",
         "idna==3.4"
     ]
-
 
     
     # Instalar todas las dependencias de una vez (más eficiente)
