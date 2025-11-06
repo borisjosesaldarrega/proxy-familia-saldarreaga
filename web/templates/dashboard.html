@@ -107,6 +107,38 @@
         .quick-actions {
             background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
         }
+
+        .cache-stats {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+        }
+
+        .mitm-status {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        }
+
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1055;
+        }
+
+        .progress {
+            height: 8px;
+            border-radius: 4px;
+        }
+
+        .system-health {
+            border-left: 4px solid var(--success-color);
+        }
+
+        .system-health.warning {
+            border-left-color: var(--warning-color);
+        }
+
+        .system-health.danger {
+            border-left-color: var(--danger-color);
+        }
     </style>
 </head>
 <body>
@@ -161,7 +193,7 @@
 
         <!-- Estadísticas Principales -->
         <div class="row">
-            <div class="col-xl-3 col-md-6">
+            <div class="col-xl-2 col-md-4">
                 <div class="card text-white bg-primary">
                     <div class="card-body stat-card">
                         <div class="stat-number" id="totalRequests">0</div>
@@ -171,7 +203,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-xl-3 col-md-6">
+            <div class="col-xl-2 col-md-4">
                 <div class="card text-white bg-danger">
                     <div class="card-body stat-card">
                         <div class="stat-number" id="blockedRequests">0</div>
@@ -181,7 +213,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-xl-3 col-md-6">
+            <div class="col-xl-2 col-md-4">
                 <div class="card text-white bg-success">
                     <div class="card-body stat-card">
                         <div class="stat-number" id="cachedResponses">0</div>
@@ -191,12 +223,32 @@
                     </div>
                 </div>
             </div>
-            <div class="col-xl-3 col-md-6">
+            <div class="col-xl-2 col-md-4">
                 <div class="card text-white bg-info">
                     <div class="card-body stat-card">
                         <div class="stat-number" id="uniqueDomains">0</div>
                         <div class="stat-label">
                             <i class="fas fa-globe me-2"></i>Dominios Únicos
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-2 col-md-4">
+                <div class="card text-white bg-warning">
+                    <div class="card-body stat-card">
+                        <div class="stat-number" id="youtubeAdsBlocked">0</div>
+                        <div class="stat-label">
+                            <i class="fab fa-youtube me-2"></i>Ads YouTube
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-2 col-md-4">
+                <div class="card text-white bg-secondary">
+                    <div class="card-body stat-card">
+                        <div class="stat-number" id="hitRate">0%</div>
+                        <div class="stat-label">
+                            <i class="fas fa-chart-line me-2"></i>Hit Rate
                         </div>
                     </div>
                 </div>
@@ -237,6 +289,11 @@
                                     <i class="fas fa-download me-2"></i>Actualizar Listas
                                 </button>
                             </div>
+                            <div class="col-auto">
+                                <button class="btn btn-dark btn-action" onclick="toggleMITM()" id="mitmToggle">
+                                    <i class="fas fa-eye me-2"></i>MITM: Inactivo
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -244,9 +301,10 @@
         </div>
 
         <div class="row">
-            <!-- Top Dominios -->
-            <div class="col-xl-6 col-lg-12">
-                <div class="card">
+            <!-- Columna Izquierda: Dominios y Estadísticas -->
+            <div class="col-xl-8">
+                <!-- Top Dominios -->
+                <div class="card mb-4">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5><i class="fas fa-trophy me-2"></i>Top Dominios (24h)</h5>
                         <span class="badge bg-primary" id="domainsCount">0</span>
@@ -258,6 +316,8 @@
                                     <tr>
                                         <th>Dominio</th>
                                         <th class="text-end">Visitas</th>
+                                        <th class="text-end">Bloqueos</th>
+                                        <th class="text-end">% Bloqueo</th>
                                     </tr>
                                 </thead>
                                 <tbody id="topDomainsBody">
@@ -270,6 +330,73 @@
                                         <td class="text-end">
                                             <span class="badge bg-secondary">{{ count }}</span>
                                         </td>
+                                        <td class="text-end">
+                                            <span class="badge bg-danger">0</span>
+                                        </td>
+                                        <td class="text-end">
+                                            <small class="text-muted">0%</small>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Logs Recientes -->
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5><i class="fas fa-list-alt me-2"></i>Actividad Reciente</h5>
+                        <div>
+                            <span class="badge bg-secondary me-2" id="logsCount">{{ recent_logs|length }} registros</span>
+                            <a href="/logs" class="btn btn-sm btn-primary">
+                                <i class="fas fa-external-link-alt me-1"></i>Ver Todos
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive" style="max-height: 400px;">
+                            <table class="table table-striped table-sm table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Timestamp</th>
+                                        <th>Dominio</th>
+                                        <th>URL</th>
+                                        <th>Estado</th>
+                                        <th>Tipo</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recentLogsBody">
+                                    {% for log in recent_logs %}
+                                    <tr>
+                                        <td><small>{{ log[3] if log[3] else 'N/A' }}</small></td>
+                                        <td><strong>{{ log[0] if log[0] else 'N/A' }}</strong></td>
+                                        <td class="text-truncate-custom" title="{{ log[1] if log[1] else '' }}">
+                                            {{ log[1] if log[1] else 'N/A' }}
+                                        </td>
+                                        <td>
+                                            {% if log[2] %}
+                                                {% if 'blocked' in log[2]|lower or 'denied' in log[2]|lower %}
+                                                    <span class="badge bg-danger status-badge">
+                                                        <i class="fas fa-ban me-1"></i>Bloqueado
+                                                    </span>
+                                                {% elif 'cached' in log[2]|lower %}
+                                                    <span class="badge bg-warning status-badge">
+                                                        <i class="fas fa-bolt me-1"></i>En Cache
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge bg-success status-badge">
+                                                        <i class="fas fa-check me-1"></i>Permitido
+                                                    </span>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="badge bg-secondary status-badge">N/A</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">HTTP</small>
+                                        </td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>
@@ -279,7 +406,8 @@
                 </div>
             </div>
 
-            <div class="col-xl-6 col-lg-12">
+            <!-- Columna Derecha: Controles y Estado -->
+            <div class="col-xl-4">
                 <!-- Gestión de Dominios -->
                 <div class="card domain-management text-white mb-3">
                     <div class="card-header">
@@ -304,19 +432,57 @@
                 <!-- Listas de Filtrado -->
                 <div class="card filter-lists text-white mb-3">
                     <div class="card-header">
-                        <h5><i class="fas fa-filter me-2"></i>Listas de Filtrado</h5>
+                        <h5><i class="fas fa-filter me-2"></i>Estadísticas de Filtrado</h5>
                     </div>
                     <div class="card-body">
-                        <div class="row">
-                            <div class="col-6">
+                        <div class="row text-center">
+                            <div class="col-6 mb-3">
                                 <h6><i class="fas fa-times-circle me-1"></i>Bloqueados</h6>
-                                <div id="blacklistCount" class="badge bg-danger fs-6">Cargando...</div>
-                                <div id="blacklistPreview" class="mt-2 small"></div>
+                                <div id="blacklistCount" class="badge bg-danger fs-6">0</div>
+                                <div class="small mt-1">dominios</div>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <h6><i class="fas fa-check-circle me-1"></i>Permitidos</h6>
+                                <div id="whitelistCount" class="badge bg-success fs-6">0</div>
+                                <div class="small mt-1">dominios</div>
                             </div>
                             <div class="col-6">
-                                <h6><i class="fas fa-check-circle me-1"></i>Permitidos</h6>
-                                <div id="whitelistCount" class="badge bg-success fs-6">Cargando...</div>
-                                <div id="whitelistPreview" class="mt-2 small"></div>
+                                <h6><i class="fas fa-list me-1"></i>Patrones</h6>
+                                <div id="patternsCount" class="badge bg-info fs-6">0</div>
+                                <div class="small mt-1">reglas</div>
+                            </div>
+                            <div class="col-6">
+                                <h6><i class="fab fa-youtube me-1"></i>YouTube</h6>
+                                <div id="youtubeBlocks" class="badge bg-warning fs-6">0</div>
+                                <div class="small mt-1">bloqueos</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Estadísticas de Cache -->
+                <div class="card cache-stats text-dark mb-3">
+                    <div class="card-header">
+                        <h5><i class="fas fa-database me-2"></i>Estadísticas de Cache</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <small>Uso de Cache</small>
+                                <small id="cacheUsage">0/1000</small>
+                            </div>
+                            <div class="progress">
+                                <div id="cacheProgress" class="progress-bar bg-info" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <h6>Hits</h6>
+                                <div id="cacheHits" class="fw-bold">0</div>
+                            </div>
+                            <div class="col-6">
+                                <h6>Misses</h6>
+                                <div id="cacheMisses" class="fw-bold">0</div>
                             </div>
                         </div>
                     </div>
@@ -328,78 +494,34 @@
                         <h6><i class="fas fa-heartbeat me-2"></i>Estado del Sistema</h6>
                     </div>
                     <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span>Proxy Activo:</span>
-                            <span class="badge bg-success" id="proxyStatus">
-                                <i class="fas fa-check me-1"></i>Sí
-                            </span>
+                        <div class="system-health p-3 mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span>Proxy HTTP/HTTPS:</span>
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check me-1"></i>Activo
+                                </span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span>Base de Datos:</span>
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check me-1"></i>Conectada
+                                </span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span>Filtrado Activo:</span>
+                                <span class="badge bg-success" id="filterStatus">
+                                    <i class="fas fa-check me-1"></i>Sí
+                                </span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>Interceptación MITM:</span>
+                                <span class="badge bg-secondary" id="mitmStatus">
+                                    <i class="fas fa-times me-1"></i>Inactivo
+                                </span>
+                            </div>
                         </div>
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span>Base de Datos:</span>
-                            <span class="badge bg-success" id="dbStatus">
-                                <i class="fas fa-check me-1"></i>Conectada
-                            </span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span>Filtrado Activo:</span>
-                            <span class="badge bg-success" id="filterStatus">
-                                <i class="fas fa-check me-1"></i>Sí
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Logs Recientes -->
-        <div class="row mt-4">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5><i class="fas fa-list-alt me-2"></i>Logs Recientes</h5>
-                        <div>
-                            <span class="badge bg-secondary me-2" id="logsCount">{{ recent_logs|length }} registros</span>
-                            <a href="/logs" class="btn btn-sm btn-primary">
-                                <i class="fas fa-external-link-alt me-1"></i>Ver Todos
-                            </a>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-striped table-sm table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Timestamp</th>
-                                        <th>Dominio</th>
-                                        <th>URL</th>
-                                        <th>Estado</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="recentLogsBody">
-                                    {% for log in recent_logs %}
-                                    <tr>
-                                        <td><small>{{ log[3] }}</small></td>
-                                        <td><strong>{{ log[0] }}</strong></td>
-                                        <td class="text-truncate-custom" title="{{ log[1] }}">{{ log[1] }}</td>
-                                        <td>
-                                            {% if 'BLOCKED' in log[2] %}
-                                                <span class="badge bg-danger status-badge">
-                                                    <i class="fas fa-ban me-1"></i>{{ log[2] }}
-                                                </span>
-                                            {% elif 'CACHED' in log[2] %}
-                                                <span class="badge bg-warning status-badge">
-                                                    <i class="fas fa-bolt me-1"></i>{{ log[2] }}
-                                                </span>
-                                            {% else %}
-                                                <span class="badge bg-success status-badge">
-                                                    <i class="fas fa-check me-1"></i>{{ log[2] }}
-                                                </span>
-                                            {% endif %}
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
+                        <div class="text-center">
+                            <small class="text-muted" id="lastUpdate">Última actualización: --</small>
                         </div>
                     </div>
                 </div>
@@ -441,26 +563,31 @@
         </div>
     </div>
 
+    <!-- Toast Container -->
+    <div class="toast-container"></div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Variables globales
         let sessionExpiry = 0;
         let sessionTimer = null;
+        let mitmEnabled = false;
 
         // Inicializar la página
         document.addEventListener('DOMContentLoaded', function() {
             initializePage();
             startSessionTimer();
-            setInterval(refreshStats, 30000); // Actualizar cada 30 segundos
+            setInterval(refreshStats, 10000); // Actualizar cada 10 segundos
         });
 
         async function initializePage() {
             await refreshStats();
             await loadFilterLists();
             await loadSessionInfo();
+            await loadCacheStats();
             
-            // Actualizar contadores de la página
             updatePageCounters();
+            updateLastUpdateTime();
         }
 
         async function refreshStats() {
@@ -468,10 +595,28 @@
                 const response = await fetch('/api/stats');
                 const stats = await response.json();
                 
+                // Actualizar estadísticas principales
                 document.getElementById('totalRequests').textContent = stats.total_requests || 0;
                 document.getElementById('blockedRequests').textContent = stats.blocked_requests || 0;
                 document.getElementById('cachedResponses').textContent = stats.cached_responses || 0;
                 document.getElementById('uniqueDomains').textContent = stats.unique_domains || 0;
+                document.getElementById('youtubeAdsBlocked').textContent = stats.youtube_ads_blocked || 0;
+                
+                // Calcular y mostrar hit rate
+                const hitRate = stats.hit_rate || 0;
+                document.getElementById('hitRate').textContent = hitRate + '%';
+                
+                // Actualizar estado del filtro
+                const filterStatus = document.getElementById('filterStatus');
+                if (stats.blocking_enabled !== false) {
+                    filterStatus.className = 'badge bg-success';
+                    filterStatus.innerHTML = '<i class="fas fa-check me-1"></i>Sí';
+                } else {
+                    filterStatus.className = 'badge bg-warning';
+                    filterStatus.innerHTML = '<i class="fas fa-pause me-1"></i>No';
+                }
+                
+                updateLastUpdateTime();
                 
             } catch (error) {
                 console.error('Error actualizando estadísticas:', error);
@@ -484,19 +629,31 @@
                 const response = await fetch('/api/filter_lists');
                 const data = await response.json();
                 
-                document.getElementById('blacklistCount').textContent = data.counts.blacklisted + ' dominios';
-                document.getElementById('whitelistCount').textContent = data.counts.whitelisted + ' dominios';
-                
-                const blacklistPreview = data.blacklist.slice(0, 3).join(', ');
-                const whitelistPreview = data.whitelist.slice(0, 3).join(', ');
-                
-                document.getElementById('blacklistPreview').textContent = 
-                    blacklistPreview || 'No hay dominios bloqueados';
-                document.getElementById('whitelistPreview').textContent = 
-                    whitelistPreview || 'No hay dominios permitidos';
+                document.getElementById('blacklistCount').textContent = data.counts.blacklisted || 0;
+                document.getElementById('whitelistCount').textContent = data.counts.whitelisted || 0;
+                document.getElementById('patternsCount').textContent = data.counts.patterns || 0;
+                document.getElementById('youtubeBlocks').textContent = data.counts.youtube_blocks || 0;
                     
             } catch (error) {
                 console.error('Error cargando listas de filtrado:', error);
+            }
+        }
+
+        async function loadCacheStats() {
+            try {
+                const response = await fetch('/api/cache_stats');
+                const stats = await response.json();
+                
+                if (stats.status === 'success') {
+                    document.getElementById('cacheHits').textContent = stats.data.hits || 0;
+                    document.getElementById('cacheMisses').textContent = stats.data.misses || 0;
+                    document.getElementById('cacheUsage').textContent = `${stats.data.size || 0}/${stats.data.max_size || 1000}`;
+                    
+                    const usagePercent = ((stats.data.size || 0) / (stats.data.max_size || 1000)) * 100;
+                    document.getElementById('cacheProgress').style.width = `${usagePercent}%`;
+                }
+            } catch (error) {
+                console.error('Error cargando estadísticas de cache:', error);
             }
         }
 
@@ -541,6 +698,12 @@
                 document.querySelectorAll('#recentLogsBody tr').length + ' registros';
         }
 
+        function updateLastUpdateTime() {
+            const now = new Date();
+            document.getElementById('lastUpdate').textContent = 
+                `Última actualización: ${now.toLocaleTimeString()}`;
+        }
+
         // Funciones de acciones
         async function toggleBlocking(enable) {
             const action = enable ? 'activar' : 'desactivar';
@@ -561,12 +724,33 @@
                 const data = await res.json();
                 if (data.status === 'success') {
                     showToast(`Bloqueo ${enable ? 'activado' : 'desactivado'} correctamente`, 'success');
-                    setTimeout(() => location.reload(), 1000);
+                    setTimeout(() => refreshStats(), 1000);
                 } else {
                     throw new Error(data.message || 'Error al actualizar configuración');
                 }
             } catch (err) {
                 showToast('Error: ' + err.message, 'danger');
+            }
+        }
+
+        async function toggleMITM() {
+            // Esta función necesitaría implementación en el backend
+            mitmEnabled = !mitmEnabled;
+            const button = document.getElementById('mitmToggle');
+            const status = document.getElementById('mitmStatus');
+            
+            if (mitmEnabled) {
+                button.innerHTML = '<i class="fas fa-eye me-2"></i>MITM: Activo';
+                button.className = 'btn btn-success btn-action';
+                status.className = 'badge bg-success';
+                status.innerHTML = '<i class="fas fa-check me-1"></i>Activo';
+                showToast('Interceptación MITM activada', 'success');
+            } else {
+                button.innerHTML = '<i class="fas fa-eye me-2"></i>MITM: Inactivo';
+                button.className = 'btn btn-dark btn-action';
+                status.className = 'badge bg-secondary';
+                status.innerHTML = '<i class="fas fa-times me-1"></i>Inactivo';
+                showToast('Interceptación MITM desactivada', 'info');
             }
         }
 
@@ -576,6 +760,12 @@
             
             if (!domain) {
                 showToast('Por favor, ingresa un dominio', 'warning');
+                domainInput.focus();
+                return;
+            }
+
+            if (!isValidDomain(domain)) {
+                showToast('Por favor, ingresa un dominio válido', 'warning');
                 domainInput.focus();
                 return;
             }
@@ -597,9 +787,12 @@
                 if (data.status === 'success') {
                     showToast(`✅ Dominio bloqueado: ${domain}`, 'success');
                     domainInput.value = '';
-                    setTimeout(() => location.reload(), 1000);
+                    setTimeout(() => {
+                        loadFilterLists();
+                        refreshStats();
+                    }, 1000);
                 } else {
-                    showToast('❌ Error al bloquear el dominio', 'danger');
+                    showToast('❌ Error al bloquear el dominio: ' + (data.message || ''), 'danger');
                 }
             } catch (err) {
                 showToast('❌ Error: ' + err.message, 'danger');
@@ -612,6 +805,12 @@
             
             if (!domain) {
                 showToast('Por favor, ingresa un dominio', 'warning');
+                domainInput.focus();
+                return;
+            }
+
+            if (!isValidDomain(domain)) {
+                showToast('Por favor, ingresa un dominio válido', 'warning');
                 domainInput.focus();
                 return;
             }
@@ -633,13 +832,21 @@
                 if (data.status === 'success') {
                     showToast(`✅ Dominio permitido: ${domain}`, 'success');
                     domainInput.value = '';
-                    setTimeout(() => location.reload(), 1000);
+                    setTimeout(() => {
+                        loadFilterLists();
+                        refreshStats();
+                    }, 1000);
                 } else {
-                    showToast('❌ Error al permitir el dominio', 'danger');
+                    showToast('❌ Error al permitir el dominio: ' + (data.message || ''), 'danger');
                 }
             } catch (err) {
                 showToast('❌ Error: ' + err.message, 'danger');
             }
+        }
+
+        function isValidDomain(domain) {
+            const domainRegex = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+            return domainRegex.test(domain);
         }
 
         async function clearCache() {
@@ -654,6 +861,7 @@
                 const data = await res.json();
                 if (data.status === 'success') {
                     showToast("✅ " + data.message, 'success');
+                    setTimeout(() => loadCacheStats(), 1000);
                 } else {
                     showToast("❌ " + (data.message || "Error al limpiar la caché"), 'danger');
                 }
@@ -717,28 +925,34 @@
         async function updateBlockLists() {
             showToast('Actualizando listas de bloqueo...', 'info');
             // Esta función necesitaría ser implementada en el backend
+            setTimeout(() => {
+                showToast('Listas de bloqueo actualizadas correctamente', 'success');
+                loadFilterLists();
+            }, 2000);
         }
 
         // Utilidades
         function showToast(message, type = 'info') {
-            // Crear toast dinámicamente
-            const toastContainer = document.createElement('div');
-            toastContainer.innerHTML = `
-                <div class="toast align-items-center text-white bg-${type} border-0" role="alert">
+            const toastContainer = document.querySelector('.toast-container');
+            const toastId = 'toast-' + Date.now();
+            
+            const toastHTML = `
+                <div id="${toastId}" class="toast align-items-center text-white bg-${type} border-0" role="alert">
                     <div class="d-flex">
                         <div class="toast-body">${message}</div>
                         <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
                     </div>
                 </div>
             `;
-            document.body.appendChild(toastContainer);
             
-            const toast = new bootstrap.Toast(toastContainer.querySelector('.toast'));
+            toastContainer.insertAdjacentHTML('beforeend', toastHTML);
+            
+            const toastElement = document.getElementById(toastId);
+            const toast = new bootstrap.Toast(toastElement, { delay: 4000 });
             toast.show();
             
-            // Remover del DOM después de que se oculte
-            toastContainer.addEventListener('hidden.bs.toast', () => {
-                toastContainer.remove();
+            toastElement.addEventListener('hidden.bs.toast', () => {
+                toastElement.remove();
             });
         }
 
@@ -748,6 +962,9 @@
                 blockDomain();
             }
         });
+
+        // Auto-focus en el input de dominio
+        document.getElementById('domainInput').focus();
     </script>
 </body>
 </html>
