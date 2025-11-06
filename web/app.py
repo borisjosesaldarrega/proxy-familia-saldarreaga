@@ -13,6 +13,7 @@ import hashlib
 import hmac
 import time
 from functools import wraps
+import html
 
 # Añadir el directorio raíz al path de Python
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -22,7 +23,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 logger = logging.getLogger(__name__)
 if not logger.handlers:
     handler = logging.StreamHandler()
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     handler.setFormatter(formatter)
     logger.addHandler(handler)
     logger.setLevel(logging.INFO)
@@ -101,7 +102,7 @@ def load_config_fallback():
         "proxy_host": "0.0.0.0",
         "proxy_port": 8080,
         "web_host": "0.0.0.0", 
-        "web_port": 8081,
+        "web_port": 10000,  # Cambiado para Render
         "blocking_enabled": True,
         "whitelist": [],
         "blacklist": [],
@@ -120,6 +121,11 @@ def load_config_fallback():
             # Combinar configuraciones
             config = default_config.copy()
             config.update(user_config)
+            
+            # Asegurar puerto correcto para Render
+            if os.environ.get('PORT'):
+                config['web_port'] = 10000  # Dashboard en puerto diferente al proxy
+                
             return config
     except Exception as e:
         logger.warning(f"Error cargando configuración: {e}")
@@ -158,64 +164,91 @@ def add_to_whitelist_fallback(domain):
 try:
     from setting import add_to_blacklist, add_to_whitelist, load_config
     logger.info("✅ Módulo setting cargado correctamente")
-except ImportError:
-    logger.warning("❌ No se pudo cargar setting.py, usando funciones fallback")
+except ImportError as e:
+    logger.warning(f"❌ No se pudo cargar setting.py: {e}, usando funciones fallback")
     # Usar funciones fallback
     add_to_blacklist = add_to_blacklist_fallback
     add_to_whitelist = add_to_whitelist_fallback
     load_config = load_config_fallback
 
 def _open_db():
-    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-    return sqlite3.connect(str(DB_PATH), detect_types=sqlite3.PARSE_DECLTYPES, check_same_thread=False)
+    """Abrir conexión a la base de datos con manejo de errores"""
+    try:
+        DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+        conn = sqlite3.connect(str(DB_PATH), detect_types=sqlite3.PARSE_DECLTYPES, check_same_thread=False)
+        conn.row_factory = sqlite3.Row  # Para acceso por nombre de columna
+        return conn
+    except Exception as e:
+        logger.error(f"Error abriendo base de datos: {e}")
+        raise
 
-def create_web_app(proxy_server: Optional[Any], config: Optional[Dict[str, Any]] = None) -> Flask:
+def create_web_app(proxy_server: Optional[Any] = None, config: Optional[Dict[str, Any]] = None) -> Flask:
+    """Crear aplicación Flask optimizada para Render"""
     try:
         app = Flask(__name__, 
                     template_folder=str(PROJECT_ROOT / "web" / "templates"),
                     static_folder=str(PROJECT_ROOT / "web" / "static"))
-        app.secret_key = secrets.token_hex(32)
+        
+        # Configuración de seguridad para Render
+        app.secret_key = os.environ.get('FLASK_SECRET_KEY', secrets.token_hex(32))
         app.config['SESSION_COOKIE_HTTPONLY'] = True
-        app.config['SESSION_COOKIE_SECURE'] = False  # Cambiar a True en producción con HTTPS
+        app.config['SESSION_COOKIE_SECURE'] = bool(os.environ.get('RENDER'))  # True en Render
         app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=1)
+        app.config['PREFERRED_URL_SCHEME'] = 'https' if os.environ.get('RENDER') else 'http'
 
         # Si no se pasa config, cargarla
         if config is None:
             config = load_config()
 
+        # Asegurar directorios necesarios
+        required_dirs = [
+            PROJECT_ROOT / "data",
+            PROJECT_ROOT / "data" / "logs", 
+            PROJECT_ROOT / "config",
+            PROJECT_ROOT / "web" / "templates",
+            PROJECT_ROOT / "web" / "static"
+        ]
+        
+        for dir_path in required_dirs:
+            dir_path.mkdir(parents=True, exist_ok=True)
+
         # Inicializar base de datos de usuarios
         def init_user_db():
             """Inicializar base de datos de usuarios"""
-            user_db_path = PROJECT_ROOT / "data" / "users.db"
-            conn = sqlite3.connect(str(user_db_path))
-            cursor = conn.cursor()
-            
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS users (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    username TEXT UNIQUE NOT NULL,
-                    password_hash TEXT NOT NULL,
-                    salt TEXT NOT NULL,
-                    role TEXT DEFAULT 'user',
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    last_login TIMESTAMP,
-                    login_attempts INTEGER DEFAULT 0,
-                    locked_until TIMESTAMP
-                )
-            ''')
+            try:
+                user_db_path = PROJECT_ROOT / "data" / "users.db"
+                conn = sqlite3.connect(str(user_db_path))
+                cursor = conn.cursor()
+                
+                cursor.execute('''
+                    CREATE TABLE IF NOT EXISTS users (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        username TEXT UNIQUE NOT NULL,
+                        password_hash TEXT NOT NULL,
+                        salt TEXT NOT NULL,
+                        role TEXT DEFAULT 'user',
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        last_login TIMESTAMP,
+                        login_attempts INTEGER DEFAULT 0,
+                        locked_until TIMESTAMP
+                    )
+                ''')
 
-            # Crear usuario admin por defecto si no existe
-            cursor.execute('SELECT COUNT(*) FROM users WHERE username = ?', (SECURITY_CONFIG['admin_username'],))
-            if cursor.fetchone()[0] == 0:
-                salt, password_hash = hash_password('admin123')  # Contraseña por defecto
-                cursor.execute(
-                    'INSERT INTO users (username, password_hash, salt, role) VALUES (?, ?, ?, ?)',
-                    (SECURITY_CONFIG['admin_username'], password_hash, salt, 'admin')
-                )
-                logger.info("Usuario admin creado con contraseña por defecto: admin123")
-            
-            conn.commit()
-            conn.close()
+                # Crear usuario admin por defecto si no existe
+                cursor.execute('SELECT COUNT(*) FROM users WHERE username = ?', (SECURITY_CONFIG['admin_username'],))
+                if cursor.fetchone()[0] == 0:
+                    salt, password_hash = hash_password('admin123')  # Contraseña por defecto
+                    cursor.execute(
+                        'INSERT INTO users (username, password_hash, salt, role) VALUES (?, ?, ?, ?)',
+                        (SECURITY_CONFIG['admin_username'], password_hash, salt, 'admin')
+                    )
+                    logger.info("✅ Usuario admin creado con contraseña por defecto: admin123")
+                
+                conn.commit()
+                conn.close()
+                logger.info("✅ Base de datos de usuarios inicializada")
+            except Exception as e:
+                logger.error(f"❌ Error inicializando base de datos de usuarios: {e}")
         
         init_user_db()
 
@@ -232,7 +265,6 @@ def create_web_app(proxy_server: Optional[Any], config: Optional[Dict[str, Any]]
             if request.endpoint and request.endpoint != 'static':
                 generate_csrf_token()
 
-        
         @app.route('/login', methods=['GET', 'POST'])
         def login():
             """Página de login"""
@@ -256,65 +288,68 @@ def create_web_app(proxy_server: Optional[Any], config: Optional[Dict[str, Any]]
                 conn = sqlite3.connect(str(user_db_path))
                 cursor = conn.cursor()
                 
-                cursor.execute(
-                    'SELECT username, password_hash, salt, role, login_attempts, locked_until FROM users WHERE username = ?',
-                    (username,)
-                )
-                user = cursor.fetchone()
-                
-                if user:
-                    username_db, password_hash, salt, role, login_attempts, locked_until = user
+                try:
+                    cursor.execute(
+                        'SELECT username, password_hash, salt, role, login_attempts, locked_until FROM users WHERE username = ?',
+                        (username,)
+                    )
+                    user = cursor.fetchone()
                     
-                    # Verificar si la cuenta está bloqueada
-                    if locked_until and datetime.fromisoformat(locked_until) > datetime.now():
-                        remaining_time = (datetime.fromisoformat(locked_until) - datetime.now()).seconds // 60
-                        conn.close()
-                        return render_template('login.html',
-                                            error=f"Cuenta bloqueada. Intente nuevamente en {remaining_time} minutos",
-                                            csrf_token=generate_csrf_token())
-                    
-                    # Verificar contraseña
-                    if verify_password(password, salt, password_hash):
-                        # Login exitoso
-                        session['authenticated'] = True
-                        session['username'] = username
-                        session['role'] = role
-                        session['login_time'] = time.time()
-                        session['session_id'] = secrets.token_urlsafe(32)
+                    if user:
+                        username_db, password_hash, salt, role, login_attempts, locked_until = user
                         
-                        # Resetear intentos fallidos
-                        cursor.execute(
-                            'UPDATE users SET login_attempts = 0, locked_until = NULL, last_login = CURRENT_TIMESTAMP WHERE username = ?',
-                            (username,)
-                        )
-                        conn.commit()
-                        conn.close()
+                        # Verificar si la cuenta está bloqueada
+                        if locked_until and datetime.fromisoformat(locked_until) > datetime.now():
+                            remaining_time = (datetime.fromisoformat(locked_until) - datetime.now()).seconds // 60
+                            return render_template('login.html',
+                                                error=f"Cuenta bloqueada. Intente nuevamente en {remaining_time} minutos",
+                                                csrf_token=generate_csrf_token())
                         
-                        logger.info(f"Login exitoso para usuario: {username}")
-                        return redirect(url_for('dashboard'))
-                    else:
-                        # Login fallido
-                        login_attempts += 1
-                        if login_attempts >= SECURITY_CONFIG['max_login_attempts']:
-                            locked_until = (datetime.now() + timedelta(seconds=SECURITY_CONFIG['lockout_time'])).isoformat()
+                        # Verificar contraseña
+                        if verify_password(password, salt, password_hash):
+                            # Login exitoso
+                            session['authenticated'] = True
+                            session['username'] = username
+                            session['role'] = role
+                            session['login_time'] = time.time()
+                            session['session_id'] = secrets.token_urlsafe(32)
+                            
+                            # Resetear intentos fallidos
                             cursor.execute(
-                                'UPDATE users SET login_attempts = ?, locked_until = ? WHERE username = ?',
-                                (login_attempts, locked_until, username)
+                                'UPDATE users SET login_attempts = 0, locked_until = NULL, last_login = CURRENT_TIMESTAMP WHERE username = ?',
+                                (username,)
                             )
-                            error_msg = "Demasiados intentos fallidos. Cuenta bloqueada por 15 minutos."
+                            conn.commit()
+                            
+                            logger.info(f"✅ Login exitoso para usuario: {username}")
+                            return redirect(url_for('dashboard'))
                         else:
-                            cursor.execute(
-                                'UPDATE users SET login_attempts = ? WHERE username = ?',
-                                (login_attempts, username)
-                            )
-                            error_msg = f"Credenciales inválidas. Intentos restantes: {SECURITY_CONFIG['max_login_attempts'] - login_attempts}"
+                            # Login fallido
+                            login_attempts += 1
+                            if login_attempts >= SECURITY_CONFIG['max_login_attempts']:
+                                locked_until = (datetime.now() + timedelta(seconds=SECURITY_CONFIG['lockout_time'])).isoformat()
+                                cursor.execute(
+                                    'UPDATE users SET login_attempts = ?, locked_until = ? WHERE username = ?',
+                                    (login_attempts, locked_until, username)
+                                )
+                                error_msg = "Demasiados intentos fallidos. Cuenta bloqueada por 15 minutos."
+                            else:
+                                cursor.execute(
+                                    'UPDATE users SET login_attempts = ? WHERE username = ?',
+                                    (login_attempts, username)
+                                )
+                                error_msg = f"Credenciales inválidas. Intentos restantes: {SECURITY_CONFIG['max_login_attempts'] - login_attempts}"
+                            
+                            conn.commit()
+                            return render_template('login.html', error=error_msg, csrf_token=generate_csrf_token())
+                    else:
+                        return render_template('login.html', error="Credenciales inválidas", csrf_token=generate_csrf_token())
                         
-                        conn.commit()
-                        conn.close()
-                        return render_template('login.html', error=error_msg, csrf_token=generate_csrf_token())
-                else:
+                except Exception as e:
+                    logger.error(f"Error en login: {e}")
+                    return render_template('login.html', error="Error interno del servidor", csrf_token=generate_csrf_token())
+                finally:
                     conn.close()
-                    return render_template('login.html', error="Credenciales inválidas", csrf_token=generate_csrf_token())
             
             return render_template('login.html', csrf_token=generate_csrf_token())
 
@@ -323,7 +358,6 @@ def create_web_app(proxy_server: Optional[Any], config: Optional[Dict[str, Any]]
             """Cerrar sesión"""
             session.clear()
             return redirect(url_for('login'))
-
 
         @app.route('/')
         @login_required
@@ -359,7 +393,7 @@ def create_web_app(proxy_server: Optional[Any], config: Optional[Dict[str, Any]]
                     ''')
                     recent_logs = cursor.fetchall()
 
-                    # Top dominios - CORREGIDO
+                    # Top dominios
                     cursor.execute('''
                         SELECT domain, COUNT(*) as count 
                         FROM requests 
@@ -405,7 +439,6 @@ def create_web_app(proxy_server: Optional[Any], config: Optional[Dict[str, Any]]
                 role=session.get('role'),
                 csrf_token=generate_csrf_token()
             )
-        
 
         @app.route('/api/clear_cache', methods=['POST'])
         @login_required
@@ -750,19 +783,35 @@ def create_web_app(proxy_server: Optional[Any], config: Optional[Dict[str, Any]]
                                 username=session.get('username'),
                                 role=session.get('role'),
                                 csrf_token=generate_csrf_token())
-        
-        # AÑADE ESTA RUTA DE PRUEBA AL FINAL
+
+        @app.route('/health')
+        def health_check():
+            """Endpoint de salud para Render"""
+            return jsonify({
+                'status': 'healthy',
+                'timestamp': datetime.now().isoformat(),
+                'environment': 'production' if os.environ.get('RENDER') else 'development',
+                'service': 'proxy-dashboard'
+            })
+
         @app.route('/test')
         def test():
-            return "✅ Flask está funcionando"
+            return jsonify({
+                'status': 'success',
+                'message': '✅ Flask está funcionando correctamente',
+                'project_root': str(PROJECT_ROOT),
+                'database_exists': DB_PATH.exists(),
+                'render_environment': bool(os.environ.get('RENDER'))
+            })
             
-        logger.info("✅ Aplicación Flask creada correctamente")
-        return app  # ← ESTA LÍNEA ES CRÍTICA
+        logger.info("✅ Aplicación Flask creada correctamente para Render")
+        return app
         
     except Exception as e:
-        logger.error(f"❌ Error creando aplicación Flask: {e}")
+        logger.error(f"❌ Error crítico creando aplicación Flask: {e}")
         # Crear una app mínima de emergencia
         emergency_app = Flask(__name__)
+        emergency_app.secret_key = 'emergency-key'
         
         @emergency_app.route('/')
         def emergency():
@@ -770,7 +819,7 @@ def create_web_app(proxy_server: Optional[Any], config: Optional[Dict[str, Any]]
             <!DOCTYPE html>
             <html>
             <head>
-                <title>Modo Emergencia</title>
+                <title>Modo Emergencia - Proxy Familiar</title>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <style>
@@ -784,10 +833,14 @@ def create_web_app(proxy_server: Optional[Any], config: Optional[Dict[str, Any]]
                     <h1>⚠️ Sistema en Mantenimiento</h1>
                     <p>Estamos experimentando problemas técnicos. Por favor, intente más tarde.</p>
                     <div class="error">Error: {html.escape(str(e))}</div>
-                    <p><a href="/logs">Ver logs</a> • <a href="/">Reintentar</a></p>
+                    <p><a href="/health">Ver estado del servicio</a></p>
                 </div>
             </body>
             </html>
             """
             
-        return emergency_app    
+        @emergency_app.route('/health')
+        def emergency_health():
+            return jsonify({'status': 'degraded', 'message': 'Emergency mode active'})
+            
+        return emergency_app
