@@ -28,14 +28,6 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # =========================
-# Importar setting.py PRIMERO
-# =========================
-try:
-    from config import load_config, save_config, add_to_blacklist, add_to_whitelist
-    logger.info("✅ config.py cargado correctamente")
-except ImportError as e:
-
-# =========================
 # Importar otros módulos
 # =========================
 try:
