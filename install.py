@@ -42,9 +42,12 @@ def main():
         "waitress==3.0.2",
         "werkzeug==3.0.1",
         "aiohttp==3.9.1",
+        "yarl==1.9.2",
+        "frozenlist==1.4.0",
+        "aiosignal==1.3.1",
+        "aiosqlite==0.20.0",
         "asyncio",
         "aiohappyeyeballs==2.3.0",
-        "aiosqlite==0.20.0",
         "pyOpenSSL==23.2.0",
         "cryptography==41.0.7",
         "pathlib",
@@ -56,11 +59,9 @@ def main():
         "typing-extensions==4.8.0",
         "attrs==23.1.0",
         "multidict==6.0.4",
-        "yarl==1.9.2",
-        "idna==3.4",
-        "aiosignal==1.3.1",
-        "frozenlist==1.4.0"
+        "idna==3.4"
     ]
+
 
     
     # Instalar todas las dependencias de una vez (más eficiente)
