@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ config.dashboard_title }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #34495e;
+            --accent-color: #3498db;
+            --danger-color: #e74c3c;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+        }
+        
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .navbar-brand {
+            font-weight: 600;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin-bottom: 1.5rem;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 12px 12px 0 0 !important;
+            padding: 1rem 1.25rem;
+            font-weight: 600;
+        }
+        
+        .stat-card {
+            text-align: center;
+            padding: 1.5rem;
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .text-truncate-custom {
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .status-badge {
+            font-size: 0.75em;
+            font-weight: 600;
+        }
+        
+        .user-info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .btn-action {
+            border-radius: 25px;
+            padding: 0.5rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .table-hover tbody tr:hover {
+            background-color: rgba(52, 152, 219, 0.1);
+        }
+        
+        .domain-management {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        
+        .filter-lists {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        
+        .quick-actions {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+    </style>
+</head>
+<body>
+    <!-- Barra de Navegación Mejorada -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));">
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1">
+                <i class="fas fa-shield-alt me-2"></i>
+                {{ config.dashboard_title }}
+            </span>
+            
+            <div class="navbar-nav ms-auto">
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle me-1"></i>
+                        {{ username }} ({{ role }})
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#" onclick="showChangePasswordModal()">
+                            <i class="fas fa-key me-2"></i>Cambiar Contraseña
+                        </a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="/logout">
+                            <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                        </a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <!-- Información del Usuario -->
+        <div class="row">
+            <div class="col-12">
+                <div class="user-info">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h5 class="mb-1"><i class="fas fa-user me-2"></i>{{ username }}</h5>
+                            <p class="mb-0">Sesión activa - Rol: <strong>{{ role }}</strong></p>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <small id="sessionTimer"></small>
+                            <button class="btn btn-outline-light btn-sm ms-2" onclick="refreshSession()">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estadísticas Principales -->
+        <div class="row">
+            <div class="col-xl-3 col-md-6">
+                <div class="card text-white bg-primary">
+                    <div class="card-body stat-card">
+                        <div class="stat-number" id="totalRequests">0</div>
+                        <div class="stat-label">
+                            <i class="fas fa-exchange-alt me-2"></i>Total Peticiones
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="card text-white bg-danger">
+                    <div class="card-body stat-card">
+                        <div class="stat-number" id="blockedRequests">0</div>
+                        <div class="stat-label">
+                            <i class="fas fa-ban me-2"></i>Bloqueadas
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="card text-white bg-success">
+                    <div class="card-body stat-card">
+                        <div class="stat-number" id="cachedResponses">0</div>
+                        <div class="stat-label">
+                            <i class="fas fa-bolt me-2"></i>En Cache
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="card text-white bg-info">
+                    <div class="card-body stat-card">
+                        <div class="stat-number" id="uniqueDomains">0</div>
+                        <div class="stat-label">
+                            <i class="fas fa-globe me-2"></i>Dominios Únicos
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controles Rápidos -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card quick-actions text-white">
+                    <div class="card-header">
+                        <h5><i class="fas fa-sliders-h me-2"></i>Controles Rápidos</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-2">
+                            <div class="col-auto">
+                                <button class="btn btn-success btn-action" onclick="toggleBlocking(true)">
+                                    <i class="fas fa-play me-2"></i>Activar Bloqueo
+                                </button>
+                            </div>
+                            <div class="col-auto">
+                                <button class="btn btn-warning btn-action" onclick="toggleBlocking(false)">
+                                    <i class="fas fa-pause me-2"></i>Desactivar Bloqueo
+                                </button>
+                            </div>
+                            <div class="col-auto">
+                                <button class="btn btn-info btn-action" onclick="clearCache()">
+                                    <i class="fas fa-broom me-2"></i>Limpiar Cache
+                                </button>
+                            </div>
+                            <div class="col-auto">
+                                <button class="btn btn-secondary btn-action" onclick="refreshStats()">
+                                    <i class="fas fa-sync-alt me-2"></i>Actualizar Stats
+                                </button>
+                            </div>
+                            <div class="col-auto">
+                                <button class="btn btn-light btn-action" onclick="updateBlockLists()">
+                                    <i class="fas fa-download me-2"></i>Actualizar Listas
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Top Dominios -->
+            <div class="col-xl-6 col-lg-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5><i class="fas fa-trophy me-2"></i>Top Dominios (24h)</h5>
+                        <span class="badge bg-primary" id="domainsCount">0</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive" style="max-height: 400px;">
+                            <table class="table table-sm table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Dominio</th>
+                                        <th class="text-end">Visitas</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="topDomainsBody">
+                                    {% for domain, count in top_domains %}
+                                    <tr>
+                                        <td>
+                                            <i class="fas fa-globe me-2 text-muted"></i>
+                                            {{ domain }}
+                                        </td>
+                                        <td class="text-end">
+                                            <span class="badge bg-secondary">{{ count }}</span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-6 col-lg-12">
+                <!-- Gestión de Dominios -->
+                <div class="card domain-management text-white mb-3">
+                    <div class="card-header">
+                        <h5><i class="fas fa-cogs me-2"></i>Gestión de Dominios</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="input-group mb-3">
+                            <input type="text" id="domainInput" class="form-control" placeholder="ejemplo.com">
+                            <button class="btn btn-danger btn-action" onclick="blockDomain()">
+                                <i class="fas fa-ban me-1"></i>Bloquear
+                            </button>
+                            <button class="btn btn-success btn-action" onclick="allowDomain()">
+                                <i class="fas fa-check me-1"></i>Permitir
+                            </button>
+                        </div>
+                        <div class="mt-3">
+                            <small>Ejemplos: google.com, youtube.com, facebook.com</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Listas de Filtrado -->
+                <div class="card filter-lists text-white mb-3">
+                    <div class="card-header">
+                        <h5><i class="fas fa-filter me-2"></i>Listas de Filtrado</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6">
+                                <h6><i class="fas fa-times-circle me-1"></i>Bloqueados</h6>
+                                <div id="blacklistCount" class="badge bg-danger fs-6">Cargando...</div>
+                                <div id="blacklistPreview" class="mt-2 small"></div>
+                            </div>
+                            <div class="col-6">
+                                <h6><i class="fas fa-check-circle me-1"></i>Permitidos</h6>
+                                <div id="whitelistCount" class="badge bg-success fs-6">Cargando...</div>
+                                <div id="whitelistPreview" class="mt-2 small"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Estado del Sistema -->
+                <div class="card">
+                    <div class="card-header">
+                        <h6><i class="fas fa-heartbeat me-2"></i>Estado del Sistema</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span>Proxy Activo:</span>
+                            <span class="badge bg-success" id="proxyStatus">
+                                <i class="fas fa-check me-1"></i>Sí
+                            </span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span>Base de Datos:</span>
+                            <span class="badge bg-success" id="dbStatus">
+                                <i class="fas fa-check me-1"></i>Conectada
+                            </span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>Filtrado Activo:</span>
+                            <span class="badge bg-success" id="filterStatus">
+                                <i class="fas fa-check me-1"></i>Sí
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Logs Recientes -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5><i class="fas fa-list-alt me-2"></i>Logs Recientes</h5>
+                        <div>
+                            <span class="badge bg-secondary me-2" id="logsCount">{{ recent_logs|length }} registros</span>
+                            <a href="/logs" class="btn btn-sm btn-primary">
+                                <i class="fas fa-external-link-alt me-1"></i>Ver Todos
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-sm table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Timestamp</th>
+                                        <th>Dominio</th>
+                                        <th>URL</th>
+                                        <th>Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recentLogsBody">
+                                    {% for log in recent_logs %}
+                                    <tr>
+                                        <td><small>{{ log[3] }}</small></td>
+                                        <td><strong>{{ log[0] }}</strong></td>
+                                        <td class="text-truncate-custom" title="{{ log[1] }}">{{ log[1] }}</td>
+                                        <td>
+                                            {% if 'BLOCKED' in log[2] %}
+                                                <span class="badge bg-danger status-badge">
+                                                    <i class="fas fa-ban me-1"></i>{{ log[2] }}
+                                                </span>
+                                            {% elif 'CACHED' in log[2] %}
+                                                <span class="badge bg-warning status-badge">
+                                                    <i class="fas fa-bolt me-1"></i>{{ log[2] }}
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-success status-badge">
+                                                    <i class="fas fa-check me-1"></i>{{ log[2] }}
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Cambiar Contraseña -->
+    <div class="modal fade" id="changePasswordModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-key me-2"></i>Cambiar Contraseña</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="changePasswordForm">
+                        <input type="hidden" id="csrf_token" value="{{ csrf_token }}">
+                        <div class="mb-3">
+                            <label for="currentPassword" class="form-label">Contraseña Actual</label>
+                            <input type="password" class="form-control" id="currentPassword" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="newPassword" class="form-label">Nueva Contraseña</label>
+                            <input type="password" class="form-control" id="newPassword" required minlength="8">
+                            <div class="form-text">Mínimo 8 caracteres</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="confirmPassword" class="form-label">Confirmar Contraseña</label>
+                            <input type="password" class="form-control" id="confirmPassword" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="changePassword()">Cambiar Contraseña</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Variables globales
+        let sessionExpiry = 0;
+        let sessionTimer = null;
+
+        // Inicializar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            initializePage();
+            startSessionTimer();
+            setInterval(refreshStats, 30000); // Actualizar cada 30 segundos
+        });
+
+        async function initializePage() {
+            await refreshStats();
+            await loadFilterLists();
+            await loadSessionInfo();
+            
+            // Actualizar contadores de la página
+            updatePageCounters();
+        }
+
+        async function refreshStats() {
+            try {
+                const response = await fetch('/api/stats');
+                const stats = await response.json();
+                
+                document.getElementById('totalRequests').textContent = stats.total_requests || 0;
+                document.getElementById('blockedRequests').textContent = stats.blocked_requests || 0;
+                document.getElementById('cachedResponses').textContent = stats.cached_responses || 0;
+                document.getElementById('uniqueDomains').textContent = stats.unique_domains || 0;
+                
+            } catch (error) {
+                console.error('Error actualizando estadísticas:', error);
+                showToast('Error al cargar estadísticas', 'danger');
+            }
+        }
+
+        async function loadFilterLists() {
+            try {
+                const response = await fetch('/api/filter_lists');
+                const data = await response.json();
+                
+                document.getElementById('blacklistCount').textContent = data.counts.blacklisted + ' dominios';
+                document.getElementById('whitelistCount').textContent = data.counts.whitelisted + ' dominios';
+                
+                const blacklistPreview = data.blacklist.slice(0, 3).join(', ');
+                const whitelistPreview = data.whitelist.slice(0, 3).join(', ');
+                
+                document.getElementById('blacklistPreview').textContent = 
+                    blacklistPreview || 'No hay dominios bloqueados';
+                document.getElementById('whitelistPreview').textContent = 
+                    whitelistPreview || 'No hay dominios permitidos';
+                    
+            } catch (error) {
+                console.error('Error cargando listas de filtrado:', error);
+            }
+        }
+
+        async function loadSessionInfo() {
+            try {
+                const response = await fetch('/api/session_info');
+                const data = await response.json();
+                sessionExpiry = data.session_expires;
+                document.getElementById('csrf_token').value = data.csrf_token;
+            } catch (error) {
+                console.error('Error cargando información de sesión:', error);
+            }
+        }
+
+        function startSessionTimer() {
+            sessionTimer = setInterval(() => {
+                const now = Math.floor(Date.now() / 1000);
+                const remaining = sessionExpiry - now;
+                
+                if (remaining <= 0) {
+                    clearInterval(sessionTimer);
+                    window.location.href = '/logout';
+                    return;
+                }
+                
+                const minutes = Math.floor(remaining / 60);
+                const seconds = remaining % 60;
+                document.getElementById('sessionTimer').textContent = 
+                    `Sesión expira en: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        async function refreshSession() {
+            await loadSessionInfo();
+            showToast('Sesión actualizada', 'success');
+        }
+
+        function updatePageCounters() {
+            document.getElementById('domainsCount').textContent = 
+                document.querySelectorAll('#topDomainsBody tr').length + ' dominios';
+            document.getElementById('logsCount').textContent = 
+                document.querySelectorAll('#recentLogsBody tr').length + ' registros';
+        }
+
+        // Funciones de acciones
+        async function toggleBlocking(enable) {
+            const action = enable ? 'activar' : 'desactivar';
+            if (!confirm(`¿Seguro que deseas ${action} el bloqueo?`)) return;
+
+            try {
+                const csrfToken = document.getElementById('csrf_token').value;
+                const res = await fetch('/api/config', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ 
+                        key: 'blocking_enabled', 
+                        value: enable,
+                        csrf_token: csrfToken
+                    })
+                });
+
+                const data = await res.json();
+                if (data.status === 'success') {
+                    showToast(`Bloqueo ${enable ? 'activado' : 'desactivado'} correctamente`, 'success');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    throw new Error(data.message || 'Error al actualizar configuración');
+                }
+            } catch (err) {
+                showToast('Error: ' + err.message, 'danger');
+            }
+        }
+
+        async function blockDomain() {
+            const domainInput = document.getElementById('domainInput');
+            const domain = domainInput.value.trim();
+            
+            if (!domain) {
+                showToast('Por favor, ingresa un dominio', 'warning');
+                domainInput.focus();
+                return;
+            }
+
+            if (!confirm(`¿Estás seguro de que quieres bloquear el dominio "${domain}"?`)) return;
+
+            try {
+                const csrfToken = document.getElementById('csrf_token').value;
+                const res = await fetch('/api/block', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ 
+                        domain: domain,
+                        csrf_token: csrfToken
+                    })
+                });
+
+                const data = await res.json();
+                if (data.status === 'success') {
+                    showToast(`✅ Dominio bloqueado: ${domain}`, 'success');
+                    domainInput.value = '';
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showToast('❌ Error al bloquear el dominio', 'danger');
+                }
+            } catch (err) {
+                showToast('❌ Error: ' + err.message, 'danger');
+            }
+        }
+
+        async function allowDomain() {
+            const domainInput = document.getElementById('domainInput');
+            const domain = domainInput.value.trim();
+            
+            if (!domain) {
+                showToast('Por favor, ingresa un dominio', 'warning');
+                domainInput.focus();
+                return;
+            }
+
+            if (!confirm(`¿Estás seguro de que quieres permitir el dominio "${domain}"?`)) return;
+
+            try {
+                const csrfToken = document.getElementById('csrf_token').value;
+                const res = await fetch('/api/allow', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ 
+                        domain: domain,
+                        csrf_token: csrfToken
+                    })
+                });
+
+                const data = await res.json();
+                if (data.status === 'success') {
+                    showToast(`✅ Dominio permitido: ${domain}`, 'success');
+                    domainInput.value = '';
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showToast('❌ Error al permitir el dominio', 'danger');
+                }
+            } catch (err) {
+                showToast('❌ Error: ' + err.message, 'danger');
+            }
+        }
+
+        async function clearCache() {
+            if (!confirm("¿Seguro que deseas limpiar la caché del proxy?\nEsto puede afectar el rendimiento temporalmente.")) return;
+
+            try {
+                const res = await fetch("/api/clear_cache", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" }
+                });
+
+                const data = await res.json();
+                if (data.status === 'success') {
+                    showToast("✅ " + data.message, 'success');
+                } else {
+                    showToast("❌ " + (data.message || "Error al limpiar la caché"), 'danger');
+                }
+            } catch (err) {
+                showToast("❌ Error al limpiar la caché: " + err.message, 'danger');
+            }
+        }
+
+        function showChangePasswordModal() {
+            const modal = new bootstrap.Modal(document.getElementById('changePasswordModal'));
+            modal.show();
+        }
+
+        async function changePassword() {
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const csrfToken = document.getElementById('csrf_token').value;
+
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                showToast('Todos los campos son requeridos', 'warning');
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                showToast('Las contraseñas nuevas no coinciden', 'warning');
+                return;
+            }
+
+            if (newPassword.length < 8) {
+                showToast('La contraseña debe tener al menos 8 caracteres', 'warning');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/change_password', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        current_password: currentPassword,
+                        new_password: newPassword,
+                        confirm_password: confirmPassword,
+                        csrf_token: csrfToken
+                    })
+                });
+
+                const data = await res.json();
+                if (data.status === 'success') {
+                    showToast('✅ Contraseña cambiada exitosamente', 'success');
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('changePasswordModal'));
+                    modal.hide();
+                    document.getElementById('changePasswordForm').reset();
+                } else {
+                    showToast('❌ ' + data.message, 'danger');
+                }
+            } catch (err) {
+                showToast('❌ Error al cambiar contraseña', 'danger');
+            }
+        }
+
+        async function updateBlockLists() {
+            showToast('Actualizando listas de bloqueo...', 'info');
+            // Esta función necesitaría ser implementada en el backend
+        }
+
+        // Utilidades
+        function showToast(message, type = 'info') {
+            // Crear toast dinámicamente
+            const toastContainer = document.createElement('div');
+            toastContainer.innerHTML = `
+                <div class="toast align-items-center text-white bg-${type} border-0" role="alert">
+                    <div class="d-flex">
+                        <div class="toast-body">${message}</div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(toastContainer);
+            
+            const toast = new bootstrap.Toast(toastContainer.querySelector('.toast'));
+            toast.show();
+            
+            // Remover del DOM después de que se oculte
+            toastContainer.addEventListener('hidden.bs.toast', () => {
+                toastContainer.remove();
+            });
+        }
+
+        // Permitir enviar con Enter
+        document.getElementById('domainInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                blockDomain();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,90 @@
+{
+    "proxy_host": "0.0.0.0",
+    "proxy_port": 8080,
+    "web_host": "0.0.0.0",
+    "web_port": 8081,
+    "dashboard_domain": "familiasaldarreaga.dzknight.com",
+    "dashboard_title": "Proxy Familiar - Familia Saldarreaga",
+    "security": {
+        "require_auth": true,
+        "session_timeout": 3600,
+        "max_login_attempts": 3,
+        "lockout_time": 900
+    },
+    "cache_enabled": true,
+    "cache_size": 1000,
+    "cache_ttl": 3600,
+    "blocking_enabled": true,
+    "youtube_blocking": true,
+    "aggressive_filtering": true,
+    "block_trackers": true,
+    "log_level": "INFO",
+    "cert_dir": "c:\\Users\\salda\\Downloads\\creacion de proxy\\config\\certs",
+    
+    "block_lists": {
+        "easylist": "https://easylist.to/easylist/easylist.txt",
+        "easyprivacy": "https://easylist.to/easylist/easyprivacy.txt",
+        "adguard_base": "https://raw.githubusercontent.com/AdguardTeam/AdguardFilters/master/BaseFilter/sections/base.txt",
+        
+        "adguard_annoyances": "https://raw.githubusercontent.com/AdguardTeam/AdguardFilters/master/AnnoyancesFilter/sections/annoyances.txt",
+        "cookie_banners": "https://secure.fanboy.co.nz/fanboy-cookiemonster.txt",
+        "annoyances": "https://easylist-downloads.adblockplus.org/fanboy-annoyance.txt",
+        
+        "adguard_tracking": "https://raw.githubusercontent.com/AdguardTeam/AdguardFilters/master/SpywareFilter/sections/tracking_servers.txt",
+        "tracking_extended": "https://www.github.developerdan.com/hosts/lists/ads-and-tracking-extended.txt",
+        
+        "youtube_ads": "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/youtube.txt",
+        "youtube_annoyances": "https://raw.githubusercontent.com/AdguardTeam/AdguardFilters/master/AnnoyancesFilter/sections/youtube.txt",
+        
+        "malware_hosts": "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts",
+        "phishing": "https://raw.githubusercontent.com/mitchellkrogza/Phishing.Database/master/phishing-domains-ACTIVE.txt",
+        
+        "easylist_spain": "https://easylist-downloads.adblockplus.org/easylistspanish.txt"
+    },
+
+    "whitelist": [
+        "update.microsoft.com",
+        "windowsupdate.microsoft.com",
+        "microsoft.com",
+        "youtube.com",
+        "www.youtube.com",
+        "googlevideo.com",
+        "ytimg.com",
+        "ggpht.com",
+        "gvt1.com",  
+        "edgedl.me.gvt1.com", 
+        "google.com",
+        "gstatic.com",
+        "fonts.googleapis.com",
+        "fonts.gstatic.com"
+    ],
+    
+    "blacklist": [
+        "googleads.g.doubleclick.net",
+        "connect.facebook.net",
+        "ads.tiktok.com",
+        "googlesyndication.com",
+        "doubleclick.net",
+        "googleadservices.com",
+        "adservice.google.com",
+        "ads.youtube.com",
+        "videoads.google.com",
+        "pagead2.googlesyndication.com",
+        "tpc.googlesyndication.com",
+        "2mdn.net",
+        "googletagservices.com",
+        "google-analytics.com",
+        "googletagmanager.com",
+        "facebook.com",
+        "fbcdn.net",
+        "twitter.com",
+        "twimg.com"
+    ],
+    
+    "user_agents": [
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:89.0) Gecko/20100101 Firefox/89.0"
+    ]
+}

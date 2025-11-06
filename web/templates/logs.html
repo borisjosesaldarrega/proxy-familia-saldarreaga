@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Logs del Proxy</title>
+</head>
+<body>
+    <h1>📜 Logs recientes del Proxy</h1>
+    {% if logs %}
+        <ul>
+        {% for log in logs %}
+            <li>{{ log }}</li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No hay registros recientes.</p>
+    {% endif %}
+</body>
+</html>

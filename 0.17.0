@@ -1,0 +1,5 @@
+Collecting aiosqlite
+  Downloading aiosqlite-0.21.0-py3-none-any.whl (15 kB)
+Requirement already satisfied: typing_extensions>=4.0 in c:\users\salda\downloads\creacion de proxy\venv\lib\site-packages (from aiosqlite) (4.15.0)
+Installing collected packages: aiosqlite
+Successfully installed aiosqlite-0.21.0

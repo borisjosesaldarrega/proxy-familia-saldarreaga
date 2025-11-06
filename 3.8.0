@@ -1,0 +1,24 @@
+Collecting aiohttp
+  Using cached aiohttp-3.13.2-cp310-cp310-win_amd64.whl (455 kB)
+Collecting aiosignal>=1.4.0
+  Using cached aiosignal-1.4.0-py3-none-any.whl (7.5 kB)
+Collecting aiohappyeyeballs>=2.5.0
+  Using cached aiohappyeyeballs-2.6.1-py3-none-any.whl (15 kB)
+Collecting attrs>=17.3.0
+  Using cached attrs-25.4.0-py3-none-any.whl (67 kB)
+Collecting propcache>=0.2.0
+  Using cached propcache-0.4.1-cp310-cp310-win_amd64.whl (41 kB)
+Collecting async-timeout<6.0,>=4.0
+  Using cached async_timeout-5.0.1-py3-none-any.whl (6.2 kB)
+Collecting yarl<2.0,>=1.17.0
+  Using cached yarl-1.22.0-cp310-cp310-win_amd64.whl (86 kB)
+Collecting frozenlist>=1.1.1
+  Using cached frozenlist-1.8.0-cp310-cp310-win_amd64.whl (43 kB)
+Collecting multidict<7.0,>=4.5
+  Using cached multidict-6.7.0-cp310-cp310-win_amd64.whl (46 kB)
+Collecting typing-extensions>=4.2
+  Using cached typing_extensions-4.15.0-py3-none-any.whl (44 kB)
+Collecting idna>=2.0
+  Using cached idna-3.11-py3-none-any.whl (71 kB)
+Installing collected packages: typing-extensions, propcache, idna, frozenlist, attrs, async-timeout, aiohappyeyeballs, multidict, aiosignal, yarl, aiohttp
+Successfully installed aiohappyeyeballs-2.6.1 aiohttp-3.13.2 aiosignal-1.4.0 async-timeout-5.0.1 attrs-25.4.0 frozenlist-1.8.0 idna-3.11 multidict-6.7.0 propcache-0.4.1 typing-extensions-4.15.0 yarl-1.22.0

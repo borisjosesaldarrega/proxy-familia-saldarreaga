@@ -1,0 +1,506 @@
+2025-11-05 21:11:46,948 - core.proxy_server - INFO - Proxy server started on 0.0.0.0:8080
+2025-11-05 21:23:19,400 - core.proxy_server - INFO - Proxy server started on 0.0.0.0:8080
+2025-11-05 21:45:09,886 - core.proxy_server - INFO - Proxy server started on 0.0.0.0:8080
+2025-11-05 21:50:31,716 - core.proxy_server - INFO - Proxy server started on 0.0.0.0:8080
+2025-11-05 21:53:41,730 - core.proxy_server - INFO - Proxy server started on 0.0.0.0:8080
+2025-11-05 21:55:40,387 - core.proxy_server - INFO - Proxy server started on 0.0.0.0:8080
+2025-11-05 21:55:40,394 - __main__ - INFO - Proxy dom�stico iniciado correctamente
+2025-11-05 21:55:40,395 - __main__ - INFO - Panel web disponible en: http://192.168.100.68:8081
+2025-11-05 21:55:40,395 - __main__ - INFO - Proxy escuchando en: 0.0.0.0:8080
+2025-11-05 21:58:52,893 - core.proxy_server - INFO - Proxy server started on 0.0.0.0:8080
+2025-11-05 21:58:52,900 - __main__ - ERROR - Error al iniciar el proxy: No module named 'waitress'
+2025-11-05 21:58:52,977 - asyncio - ERROR - Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x0000028CD3B2D510>
+2025-11-05 22:02:04,250 - waitress - INFO - Serving on http://0.0.0.0:8081
+2025-11-05 22:02:04,662 - core.proxy_server - INFO - Proxy server started on 0.0.0.0:8080
+2025-11-05 22:02:04,680 - __main__ - INFO -  Proxy dom�stico iniciado correctamente
+2025-11-05 22:02:04,681 - __main__ - INFO -  Panel web disponible en: http://192.168.100.68:8081
+2025-11-05 22:02:04,681 - __main__ - INFO -  Proxy escuchando en: 0.0.0.0:8080
+2025-11-05 22:13:25,507 - web.app - ERROR - Exception on /logs [GET]
+Traceback (most recent call last):
+  File "C:\Users\salda\Downloads\creacion de proxy\.venv\lib\site-packages\flask\app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "C:\Users\salda\Downloads\creacion de proxy\.venv\lib\site-packages\flask\app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "C:\Users\salda\Downloads\creacion de proxy\.venv\lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\salda\Downloads\creacion de proxy\.venv\lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "c:\Users\salda\Downloads\creacion de proxy\web\app.py", line 138, in view_logs
+    return render_template('logs.html', logs=logs, page=page, total=total, limit=limit)
+  File "C:\Users\salda\Downloads\creacion de proxy\.venv\lib\site-packages\flask\templating.py", line 149, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+  File "C:\Users\salda\Downloads\creacion de proxy\.venv\lib\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+  File "C:\Users\salda\Downloads\creacion de proxy\.venv\lib\site-packages\jinja2\environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+  File "C:\Users\salda\Downloads\creacion de proxy\.venv\lib\site-packages\jinja2\environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+  File "C:\Users\salda\Downloads\creacion de proxy\.venv\lib\site-packages\jinja2\loaders.py", line 126, in load
+    source, filename, uptodate = self.get_source(environment, name)
+  File "C:\Users\salda\Downloads\creacion de proxy\.venv\lib\site-packages\flask\templating.py", line 65, in get_source
+    return self._get_source_fast(environment, template)
+  File "C:\Users\salda\Downloads\creacion de proxy\.venv\lib\site-packages\flask\templating.py", line 99, in _get_source_fast
+    raise TemplateNotFound(template)
+jinja2.exceptions.TemplateNotFound: logs.html
+2025-11-05 22:15:46,599 - web.app - ERROR - Exception on /logs [GET]
+Traceback (most recent call last):
+  File "C:\Users\salda\Downloads\creacion de proxy\.venv\lib\site-packages\flask\app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "C:\Users\salda\Downloads\creacion de proxy\.venv\lib\site-packages\flask\app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "C:\Users\salda\Downloads\creacion de proxy\.venv\lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\salda\Downloads\creacion de proxy\.venv\lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "c:\Users\salda\Downloads\creacion de proxy\web\app.py", line 138, in view_logs
+    return render_template('logs.html', logs=logs, page=page, total=total, limit=limit)
+  File "C:\Users\salda\Downloads\creacion de proxy\.venv\lib\site-packages\flask\templating.py", line 149, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+  File "C:\Users\salda\Downloads\creacion de proxy\.venv\lib\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+  File "C:\Users\salda\Downloads\creacion de proxy\.venv\lib\site-packages\jinja2\environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+  File "C:\Users\salda\Downloads\creacion de proxy\.venv\lib\site-packages\jinja2\environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+  File "C:\Users\salda\Downloads\creacion de proxy\.venv\lib\site-packages\jinja2\loaders.py", line 126, in load
+    source, filename, uptodate = self.get_source(environment, name)
+  File "C:\Users\salda\Downloads\creacion de proxy\.venv\lib\site-packages\flask\templating.py", line 65, in get_source
+    return self._get_source_fast(environment, template)
+  File "C:\Users\salda\Downloads\creacion de proxy\.venv\lib\site-packages\flask\templating.py", line 99, in _get_source_fast
+    raise TemplateNotFound(template)
+jinja2.exceptions.TemplateNotFound: logs.html
+2025-11-05 22:15:54,468 - web.app - ERROR - Exception on /logs [GET]
+Traceback (most recent call last):
+  File "C:\Users\salda\Downloads\creacion de proxy\.venv\lib\site-packages\flask\app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "C:\Users\salda\Downloads\creacion de proxy\.venv\lib\site-packages\flask\app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "C:\Users\salda\Downloads\creacion de proxy\.venv\lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\salda\Downloads\creacion de proxy\.venv\lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "c:\Users\salda\Downloads\creacion de proxy\web\app.py", line 138, in view_logs
+    return render_template('logs.html', logs=logs, page=page, total=total, limit=limit)
+  File "C:\Users\salda\Downloads\creacion de proxy\.venv\lib\site-packages\flask\templating.py", line 149, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+  File "C:\Users\salda\Downloads\creacion de proxy\.venv\lib\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+  File "C:\Users\salda\Downloads\creacion de proxy\.venv\lib\site-packages\jinja2\environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+  File "C:\Users\salda\Downloads\creacion de proxy\.venv\lib\site-packages\jinja2\environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+  File "C:\Users\salda\Downloads\creacion de proxy\.venv\lib\site-packages\jinja2\loaders.py", line 126, in load
+    source, filename, uptodate = self.get_source(environment, name)
+  File "C:\Users\salda\Downloads\creacion de proxy\.venv\lib\site-packages\flask\templating.py", line 65, in get_source
+    return self._get_source_fast(environment, template)
+  File "C:\Users\salda\Downloads\creacion de proxy\.venv\lib\site-packages\flask\templating.py", line 99, in _get_source_fast
+    raise TemplateNotFound(template)
+jinja2.exceptions.TemplateNotFound: logs.html
+2025-11-05 22:51:10,458 - waitress - INFO - Serving on http://0.0.0.0:8085
+2025-11-05 22:51:10,872 - core.proxy_server - INFO - Proxy server started on 0.0.0.0:8080
+2025-11-05 22:51:10,877 - __main__ - INFO -  Proxy doméstico iniciado correctamente
+2025-11-05 22:51:10,878 - __main__ - INFO -  Panel web disponible en: http://192.168.100.68:8081
+2025-11-05 22:51:10,879 - __main__ - INFO -  Proxy escuchando en: 0.0.0.0:8080
+2025-11-05 22:51:10,880 - __main__ - INFO -  Logs disponibles en: http://192.168.100.68:8081/logs
+2025-11-05 22:52:41,022 - __main__ - INFO -  Logs disponibles en: http://192.168.100.68:8081/logs
+2025-11-05 22:52:41,417 - core.proxy_server - INFO - Proxy server started on 0.0.0.0:8080
+2025-11-05 22:52:41,417 - __main__ - INFO -  Proxy doméstico iniciado correctamente
+2025-11-05 22:52:41,417 - __main__ - INFO -  Panel web disponible en: http://192.168.100.68:8081
+2025-11-05 22:52:41,417 - __main__ - INFO -  Proxy escuchando en: 0.0.0.0:8080
+2025-11-05 22:52:41,417 - __main__ - INFO -  Logs disponibles en: http://192.168.100.68:8081/logs
+2025-11-05 22:52:41,542 - waitress - INFO - Serving on http://0.0.0.0:8081
+2025-11-05 23:23:13,799 - __main__ - INFO -  Logs disponibles en: http://192.168.100.68:8081/logs
+2025-11-05 23:23:14,336 - core.proxy_server - INFO - Proxy server started on 0.0.0.0:8080
+2025-11-05 23:23:14,357 - __main__ - INFO -  Proxy doméstico iniciado correctamente
+2025-11-05 23:23:14,358 - __main__ - INFO -  Panel web disponible en: http://192.168.100.68:8081
+2025-11-05 23:23:14,359 - __main__ - INFO -  Proxy escuchando en: 0.0.0.0:8080
+2025-11-05 23:23:14,362 - __main__ - INFO -  Logs disponibles en: http://192.168.100.68:8081/logs
+2025-11-05 23:23:14,854 - waitress - INFO - Serving on http://0.0.0.0:8081
+2025-11-05 23:29:45,693 - core.proxy_server - INFO - Proxy server stopped
+2025-11-05 23:29:45,693 - __main__ - INFO -  Proxy detenido correctamente
+2025-11-05 23:29:45,694 - __main__ - INFO - Cerrando servicios...
+2025-11-05 23:30:44,432 - __main__ - INFO -  Logs disponibles en: http://192.168.100.68:8081/logs
+2025-11-05 23:30:44,849 - core.proxy_server - INFO - Proxy server started on 0.0.0.0:8080
+2025-11-05 23:30:44,854 - __main__ - INFO -  Proxy doméstico iniciado correctamente
+2025-11-05 23:30:44,854 - __main__ - INFO -  Panel web disponible en: http://192.168.100.68:8081
+2025-11-05 23:30:44,854 - __main__ - INFO -  Proxy escuchando en: 0.0.0.0:8080
+2025-11-05 23:30:44,866 - __main__ - INFO -  Logs disponibles en: http://192.168.100.68:8081/logs
+2025-11-05 23:30:44,955 - waitress - INFO - Serving on http://0.0.0.0:8081
+2025-11-05 23:32:18,559 - __main__ - INFO -  Logs disponibles en: http://192.168.100.68:8081/logs
+2025-11-05 23:32:18,940 - core.proxy_server - INFO - Proxy server started on 0.0.0.0:8080
+2025-11-05 23:32:18,961 - __main__ - INFO -  Proxy doméstico iniciado correctamente
+2025-11-05 23:32:18,962 - __main__ - INFO -  Panel web disponible en: http://192.168.100.68:8081
+2025-11-05 23:32:18,962 - __main__ - INFO -  Proxy escuchando en: 0.0.0.0:8080
+2025-11-05 23:32:18,966 - __main__ - INFO -  Logs disponibles en: http://192.168.100.68:8081/logs
+2025-11-05 23:32:19,072 - waitress - INFO - Serving on http://0.0.0.0:8081
+2025-11-05 23:38:21,073 - __main__ - INFO -  Logs disponibles en: http://192.168.100.68:8081/logs
+2025-11-05 23:38:21,480 - core.proxy_server - INFO - Proxy server started on 0.0.0.0:8080
+2025-11-05 23:38:21,498 - __main__ - INFO -  Proxy doméstico iniciado correctamente
+2025-11-05 23:38:21,500 - __main__ - INFO -  Panel web disponible en: http://192.168.100.68:8081
+2025-11-05 23:38:21,502 - __main__ - INFO -  Proxy escuchando en: 0.0.0.0:8080
+2025-11-05 23:38:21,503 - __main__ - INFO -  Logs disponibles en: http://192.168.100.68:8081/logs
+2025-11-05 23:38:21,589 - waitress - INFO - Serving on http://0.0.0.0:8081
+2025-11-06 00:15:11,323 - web.app - WARNING - ❌ No se pudo cargar setting.py, usando funciones fallback
+2025-11-06 00:15:11,323 - __main__ - INFO -  Logs disponibles en: http://192.168.100.68:8081/logs
+2025-11-06 00:15:11,730 - core.proxy_server - INFO - Proxy server started on 0.0.0.0:8080
+2025-11-06 00:15:11,754 - __main__ - INFO -  Proxy doméstico iniciado correctamente
+2025-11-06 00:15:11,754 - __main__ - INFO -  Panel web disponible en: http://192.168.100.68:8081
+2025-11-06 00:15:11,762 - __main__ - INFO -  Proxy escuchando en: 0.0.0.0:8080
+2025-11-06 00:15:11,762 - __main__ - INFO -  Logs disponibles en: http://192.168.100.68:8081/logs
+2025-11-06 00:15:11,853 - waitress - INFO - Serving on http://0.0.0.0:8081
+2025-11-06 00:16:51,948 - web.app - WARNING - ❌ No se pudo cargar setting.py, usando funciones fallback
+2025-11-06 00:16:51,956 - __main__ - INFO -  Logs disponibles en: http://192.168.100.68:8081/logs
+2025-11-06 00:16:52,344 - core.proxy_server - INFO - Proxy server started on 0.0.0.0:8080
+2025-11-06 00:16:52,461 - __main__ - INFO -  Proxy doméstico iniciado correctamente
+2025-11-06 00:16:52,497 - __main__ - INFO -  Panel web disponible en: http://192.168.100.68:8081
+2025-11-06 00:16:52,511 - __main__ - INFO -  Proxy escuchando en: 0.0.0.0:8080
+2025-11-06 00:16:52,516 - __main__ - INFO -  Logs disponibles en: http://192.168.100.68:8081/logs
+2025-11-06 00:16:52,532 - waitress - INFO - Serving on http://0.0.0.0:8081
+2025-11-06 00:17:36,086 - web.app - INFO - Dominio añadido a blacklist: googleads.g.doubleclick.net
+2025-11-06 00:17:49,380 - web.app - INFO - Dominio añadido a blacklist: connect.facebook.net
+2025-11-06 00:17:56,238 - web.app - INFO - Dominio añadido a whitelist: youtube.com
+2025-11-06 00:18:03,230 - web.app - INFO - Dominio añadido a blacklist: ads.tiktok.com
+2025-11-06 00:40:10,387 - web.app - WARNING - ❌ No se pudo cargar setting.py, usando funciones fallback
+2025-11-06 00:40:10,403 - __main__ - INFO -  Logs disponibles en: http://192.168.100.68:8081/logs
+2025-11-06 00:40:10,857 - core.proxy_server - INFO - 🚀 Proxy server started on 0.0.0.0:8080
+2025-11-06 00:40:10,857 - core.proxy_server - INFO - ✅ HTTP and HTTPS forwarding enabled
+2025-11-06 00:46:19,197 - web.app - WARNING - ❌ No se pudo cargar setting.py, usando funciones fallback
+2025-11-06 00:46:19,226 - __main__ - INFO - 🚀 Proxy doméstico iniciado correctamente
+2025-11-06 00:46:19,226 - __main__ - INFO - 🌐 Panel web disponible en: http://192.168.100.68:8081
+2025-11-06 00:46:19,227 - __main__ - INFO - 🔌 Proxy escuchando en: 0.0.0.0:8080
+2025-11-06 00:46:19,228 - __main__ - INFO - 📊 Logs disponibles en: http://192.168.100.68:8081/logs
+2025-11-06 00:46:19,683 - __main__ - INFO - Iniciando dashboard web...
+2025-11-06 00:46:19,693 - __main__ - INFO - 🌐 Dashboard web iniciado en: http://192.168.100.68:8081
+2025-11-06 00:46:19,731 - waitress - INFO - Serving on http://0.0.0.0:8081
+2025-11-06 00:46:20,153 - core.proxy_server - INFO - 🚀 Proxy server started on 0.0.0.0:8080
+2025-11-06 00:46:20,153 - core.proxy_server - INFO - ✅ HTTP and HTTPS forwarding enabled
+2025-11-06 00:47:35,149 - web.app - INFO - Dominio añadido a blacklist: googleads.g.doubleclick.net
+2025-11-06 00:47:49,797 - web.app - INFO - Dominio añadido a blacklist: connect.facebook.net
+2025-11-06 00:47:58,676 - web.app - INFO - Dominio añadido a whitelist: youtube.com
+2025-11-06 00:48:05,698 - web.app - INFO - Dominio añadido a blacklist: ads.tiktok.com
+2025-11-06 00:54:45,149 - web.app - WARNING - ❌ No se pudo cargar setting.py, usando funciones fallback
+2025-11-06 00:54:45,159 - __main__ - INFO - Configuración por defecto creada en c:\Users\salda\Downloads\creacion de proxy\config.py\config.json
+2025-11-06 00:54:45,187 - __main__ - INFO - 🚀 Proxy doméstico iniciado correctamente
+2025-11-06 00:54:45,189 - __main__ - INFO - 🌐 Panel web disponible en: http://192.168.100.68:8081
+2025-11-06 00:54:45,190 - __main__ - INFO - 🔌 Proxy escuchando en: 0.0.0.0:8080
+2025-11-06 00:54:45,191 - __main__ - INFO - 📊 Logs disponibles en: http://192.168.100.68:8081/logs
+2025-11-06 00:54:45,622 - __main__ - INFO - Iniciando dashboard web...
+2025-11-06 00:54:45,629 - __main__ - INFO - 🌐 Dashboard web iniciado en: http://192.168.100.68:8081
+2025-11-06 00:54:45,687 - waitress - INFO - Serving on http://0.0.0.0:8081
+2025-11-06 00:54:46,253 - core.proxy_server - INFO - 🚀 Proxy server started on 0.0.0.0:8080
+2025-11-06 00:54:46,253 - core.proxy_server - INFO - ✅ HTTP and HTTPS forwarding enabled
+2025-11-06 00:55:38,845 - web.app - WARNING - ❌ No se pudo cargar setting.py, usando funciones fallback
+2025-11-06 00:55:38,851 - __main__ - INFO - Configuración por defecto creada en c:\Users\salda\Downloads\creacion de proxy\setting.py\config.json
+2025-11-06 00:55:38,885 - __main__ - INFO - 🚀 Proxy doméstico iniciado correctamente
+2025-11-06 00:55:38,886 - __main__ - INFO - 🌐 Panel web disponible en: http://192.168.100.68:8081
+2025-11-06 00:55:38,888 - __main__ - INFO - 🔌 Proxy escuchando en: 0.0.0.0:8080
+2025-11-06 00:55:38,889 - __main__ - INFO - 📊 Logs disponibles en: http://192.168.100.68:8081/logs
+2025-11-06 00:55:39,351 - __main__ - INFO - Iniciando dashboard web...
+2025-11-06 00:55:39,376 - __main__ - INFO - 🌐 Dashboard web iniciado en: http://192.168.100.68:8081
+2025-11-06 00:55:39,439 - waitress - INFO - Serving on http://0.0.0.0:8081
+2025-11-06 00:55:39,896 - core.proxy_server - INFO - 🚀 Proxy server started on 0.0.0.0:8080
+2025-11-06 00:55:39,896 - core.proxy_server - INFO - ✅ HTTP and HTTPS forwarding enabled
+2025-11-06 00:58:11,011 - web.app - WARNING - ❌ No se pudo cargar setting.py, usando funciones fallback
+2025-11-06 00:58:11,043 - __main__ - INFO - 🚀 Proxy doméstico iniciado correctamente
+2025-11-06 00:58:11,045 - __main__ - INFO - 🌐 Panel web disponible en: http://192.168.100.68:8081
+2025-11-06 00:58:11,045 - __main__ - INFO - 🔌 Proxy escuchando en: 0.0.0.0:8080
+2025-11-06 00:58:11,045 - __main__ - INFO - 📊 Logs disponibles en: http://192.168.100.68:8081/logs
+2025-11-06 00:58:11,417 - __main__ - INFO - Iniciando dashboard web...
+2025-11-06 00:58:11,417 - __main__ - INFO - 🌐 Dashboard web iniciado en: http://192.168.100.68:8081
+2025-11-06 00:58:11,472 - waitress - INFO - Serving on http://0.0.0.0:8081
+2025-11-06 00:58:11,804 - core.proxy_server - INFO - 🚀 Proxy server started on 0.0.0.0:8080
+2025-11-06 00:58:11,804 - core.proxy_server - INFO - ✅ HTTP and HTTPS forwarding enabled
+2025-11-06 00:58:58,777 - web.app - WARNING - ❌ No se pudo cargar setting.py, usando funciones fallback
+2025-11-06 00:58:58,815 - __main__ - INFO - 🚀 Proxy doméstico iniciado correctamente
+2025-11-06 00:58:58,815 - __main__ - INFO - 🌐 Panel web disponible en: http://192.168.100.68:8081
+2025-11-06 00:58:58,816 - __main__ - INFO - 🔌 Proxy escuchando en: 0.0.0.0:8080
+2025-11-06 00:58:58,816 - __main__ - INFO - 📊 Logs disponibles en: http://192.168.100.68:8081/logs
+2025-11-06 00:58:59,198 - __main__ - INFO - Iniciando dashboard web...
+2025-11-06 00:58:59,198 - __main__ - INFO - 🌐 Dashboard web iniciado en: http://192.168.100.68:8081
+2025-11-06 00:58:59,238 - waitress - INFO - Serving on http://0.0.0.0:8081
+2025-11-06 00:58:59,602 - core.proxy_server - INFO - 🚀 Proxy server started on 0.0.0.0:8080
+2025-11-06 00:58:59,602 - core.proxy_server - INFO - ✅ HTTP and HTTPS forwarding enabled
+2025-11-06 00:59:56,654 - web.app - WARNING - ❌ No se pudo cargar setting.py, usando funciones fallback
+2025-11-06 00:59:56,690 - __main__ - INFO - 🚀 Proxy doméstico iniciado correctamente
+2025-11-06 00:59:56,690 - __main__ - INFO - 🌐 Panel web disponible en: http://192.168.100.68:8081
+2025-11-06 00:59:56,691 - __main__ - INFO - 🔌 Proxy escuchando en: 0.0.0.0:8080
+2025-11-06 00:59:56,692 - __main__ - INFO - 📊 Logs disponibles en: http://192.168.100.68:8081/logs
+2025-11-06 00:59:57,113 - __main__ - INFO - Iniciando dashboard web...
+2025-11-06 00:59:57,135 - __main__ - INFO - 🌐 Dashboard web iniciado en: http://192.168.100.68:8081
+2025-11-06 00:59:57,196 - waitress - INFO - Serving on http://0.0.0.0:8081
+2025-11-06 00:59:57,570 - core.proxy_server - INFO - 🚀 Proxy server started on 0.0.0.0:8080
+2025-11-06 00:59:57,570 - core.proxy_server - INFO - ✅ HTTP and HTTPS forwarding enabled
+2025-11-06 01:01:18,511 - web.app - WARNING - ❌ No se pudo cargar setting.py, usando funciones fallback
+2025-11-06 01:01:18,511 - __main__ - INFO - Configuración por defecto creada en c:\Users\salda\Downloads\creacion de proxy\certs\config.json
+2025-11-06 01:01:18,544 - __main__ - INFO - 🚀 Proxy doméstico iniciado correctamente
+2025-11-06 01:01:18,545 - __main__ - INFO - 🌐 Panel web disponible en: http://192.168.100.68:8081
+2025-11-06 01:01:18,546 - __main__ - INFO - 🔌 Proxy escuchando en: 0.0.0.0:8080
+2025-11-06 01:01:18,546 - __main__ - INFO - 📊 Logs disponibles en: http://192.168.100.68:8081/logs
+2025-11-06 01:01:18,917 - __main__ - INFO - Iniciando dashboard web...
+2025-11-06 01:01:18,935 - __main__ - INFO - 🌐 Dashboard web iniciado en: http://192.168.100.68:8081
+2025-11-06 01:01:18,945 - waitress - INFO - Serving on http://0.0.0.0:8081
+2025-11-06 01:01:19,368 - core.proxy_server - INFO - 🚀 Proxy server started on 0.0.0.0:8080
+2025-11-06 01:01:19,368 - core.proxy_server - INFO - ✅ HTTP and HTTPS forwarding enabled
+2025-11-06 01:01:57,089 - web.app - WARNING - ❌ No se pudo cargar setting.py, usando funciones fallback
+2025-11-06 01:01:57,125 - __main__ - INFO - 🚀 Proxy doméstico iniciado correctamente
+2025-11-06 01:01:57,125 - __main__ - INFO - 🌐 Panel web disponible en: http://192.168.100.68:8081
+2025-11-06 01:01:57,125 - __main__ - INFO - 🔌 Proxy escuchando en: 0.0.0.0:8080
+2025-11-06 01:01:57,125 - __main__ - INFO - 📊 Logs disponibles en: http://192.168.100.68:8081/logs
+2025-11-06 01:01:57,496 - __main__ - INFO - Iniciando dashboard web...
+2025-11-06 01:01:57,511 - __main__ - INFO - 🌐 Dashboard web iniciado en: http://192.168.100.68:8081
+2025-11-06 01:01:57,571 - waitress - INFO - Serving on http://0.0.0.0:8081
+2025-11-06 01:01:57,953 - core.proxy_server - INFO - 🚀 Proxy server started on 0.0.0.0:8080
+2025-11-06 01:01:57,953 - core.proxy_server - INFO - ✅ HTTP and HTTPS forwarding enabled
+2025-11-06 01:03:48,808 - web.app - WARNING - ❌ No se pudo cargar setting.py, usando funciones fallback
+2025-11-06 01:03:48,824 - __main__ - INFO - Configuración por defecto creada en c:\Users\salda\Downloads\creacion de proxy\config\certs\config.json
+2025-11-06 01:03:48,844 - __main__ - INFO - 🚀 Proxy doméstico iniciado correctamente
+2025-11-06 01:03:48,844 - __main__ - INFO - 🌐 Panel web disponible en: http://192.168.100.68:8081
+2025-11-06 01:03:48,845 - __main__ - INFO - 🔌 Proxy escuchando en: 0.0.0.0:8080
+2025-11-06 01:03:48,845 - __main__ - INFO - 📊 Logs disponibles en: http://192.168.100.68:8081/logs
+2025-11-06 01:03:49,214 - __main__ - INFO - Iniciando dashboard web...
+2025-11-06 01:03:49,233 - __main__ - INFO - 🌐 Dashboard web iniciado en: http://192.168.100.68:8081
+2025-11-06 01:03:49,304 - waitress - INFO - Serving on http://0.0.0.0:8081
+2025-11-06 01:03:49,671 - core.proxy_server - INFO - 🚀 Proxy server started on 0.0.0.0:8080
+2025-11-06 01:03:49,671 - core.proxy_server - INFO - ✅ HTTP and HTTPS forwarding enabled
+2025-11-06 01:04:47,344 - web.app - WARNING - ❌ No se pudo cargar setting.py, usando funciones fallback
+2025-11-06 01:04:47,371 - __main__ - INFO - 🚀 Proxy doméstico iniciado correctamente
+2025-11-06 01:04:47,371 - __main__ - INFO - 🌐 Panel web disponible en: http://192.168.100.68:8081
+2025-11-06 01:04:47,371 - __main__ - INFO - 🔌 Proxy escuchando en: 0.0.0.0:8080
+2025-11-06 01:04:47,371 - __main__ - INFO - 📊 Logs disponibles en: http://192.168.100.68:8081/logs
+2025-11-06 01:04:47,793 - __main__ - INFO - Iniciando dashboard web...
+2025-11-06 01:04:47,793 - __main__ - INFO - 🌐 Dashboard web iniciado en: http://192.168.100.68:8081
+2025-11-06 01:04:47,839 - waitress - INFO - Serving on http://0.0.0.0:8081
+2025-11-06 01:04:48,183 - core.proxy_server - INFO - 🚀 Proxy server started on 0.0.0.0:8080
+2025-11-06 01:04:48,183 - core.proxy_server - INFO - ✅ HTTP and HTTPS forwarding enabled
+2025-11-06 01:07:33,791 - web.app - WARNING - ❌ No se pudo cargar setting.py, usando funciones fallback
+2025-11-06 01:07:33,820 - __main__ - INFO - 🚀 Proxy doméstico iniciado correctamente
+2025-11-06 01:07:33,820 - __main__ - INFO - 🌐 Panel web disponible en: http://192.168.100.68:8081
+2025-11-06 01:07:33,820 - __main__ - INFO - 🔌 Proxy escuchando en: 0.0.0.0:8080
+2025-11-06 01:07:33,820 - __main__ - INFO - 📊 Logs disponibles en: http://192.168.100.68:8081/logs
+2025-11-06 01:07:34,198 - __main__ - INFO - Iniciando dashboard web...
+2025-11-06 01:07:34,216 - __main__ - INFO - 🌐 Dashboard web iniciado en: http://192.168.100.68:8081
+2025-11-06 01:07:34,237 - waitress - INFO - Serving on http://0.0.0.0:8081
+2025-11-06 01:07:34,614 - core.proxy_server - INFO - 🚀 Proxy server started on 0.0.0.0:8080
+2025-11-06 01:07:34,614 - core.proxy_server - INFO - ✅ HTTP and HTTPS forwarding enabled
+2025-11-06 01:09:42,694 - web.app - WARNING - ❌ No se pudo cargar setting.py, usando funciones fallback
+2025-11-06 01:11:35,058 - web.app - WARNING - ❌ No se pudo cargar setting.py, usando funciones fallback
+2025-11-06 01:11:35,083 - __main__ - INFO - 🚀 Proxy doméstico iniciado correctamente
+2025-11-06 01:11:35,084 - __main__ - INFO - 🌐 Panel web disponible en: http://192.168.100.68:8081
+2025-11-06 01:11:35,088 - __main__ - INFO - 🔌 Proxy escuchando en: 0.0.0.0:8080
+2025-11-06 01:11:35,089 - __main__ - INFO - 📊 Logs disponibles en: http://192.168.100.68:8081/logs
+2025-11-06 01:11:35,495 - __main__ - INFO - Iniciando dashboard web...
+2025-11-06 01:11:35,511 - __main__ - INFO - 🌐 Dashboard web iniciado en: http://192.168.100.68:8081
+2025-11-06 01:11:35,555 - waitress - INFO - Serving on http://0.0.0.0:8081
+2025-11-06 01:11:35,946 - core.proxy_server - INFO - 🚀 Proxy server started on 0.0.0.0:8080
+2025-11-06 01:11:35,947 - core.proxy_server - INFO - ✅ HTTP and HTTPS forwarding enabled
+2025-11-06 01:19:54,432 - web.app - WARNING - ❌ No se pudo cargar setting.py, usando funciones fallback
+2025-11-06 01:19:54,497 - __main__ - INFO - 🚀 Proxy doméstico iniciado correctamente
+2025-11-06 01:19:54,497 - __main__ - INFO - 🌐 Panel web disponible en: http://192.168.100.68:8081
+2025-11-06 01:19:54,497 - __main__ - INFO - 🔌 Proxy escuchando en: 0.0.0.0:8080
+2025-11-06 01:19:54,497 - __main__ - INFO - 📊 Logs disponibles en: http://192.168.100.68:8081/logs
+2025-11-06 01:19:54,502 - __main__ - INFO - Iniciando dashboard web...
+2025-11-06 01:19:54,502 - __main__ - INFO - 🌐 Dashboard web iniciado en: http://192.168.100.68:8081
+2025-11-06 01:19:54,528 - waitress - INFO - Serving on http://0.0.0.0:8081
+2025-11-06 01:19:54,528 - core.proxy_server - INFO - 🚀 Proxy server started on 0.0.0.0:8080
+2025-11-06 01:19:54,529 - core.proxy_server - INFO - ✅ HTTP and HTTPS forwarding enabled
+2025-11-06 01:19:54,729 - core.content_filter - INFO - 📥 Lista descargada: youtube_ads.txt
+2025-11-06 01:19:54,761 - core.content_filter - INFO - 📋 0 reglas cargadas de youtube_ads.txt
+2025-11-06 01:19:54,807 - core.content_filter - INFO - ✅ Lista cargada: youtube_ads.txt
+2025-11-06 01:19:55,401 - core.content_filter - INFO - 📋 107776 reglas cargadas de steven_black.txt
+2025-11-06 01:19:55,401 - core.content_filter - INFO - ✅ Lista cargada: steven_black.txt
+2025-11-06 01:30:37,309 - core.content_filter - INFO - 🚫 Bloqueado por blacklist: pagead2.googlesyndication.com
+2025-11-06 01:30:37,332 - core.content_filter - INFO - 🚫 Bloqueado por lista: ade.googlesyndication.com
+2025-11-06 01:30:37,360 - core.content_filter - INFO - 🚫 Bloqueado por lista: ad.doubleclick.net
+2025-11-06 01:30:39,452 - core.content_filter - INFO - 🚫 Bloqueado por blacklist: pagead2.googlesyndication.com
+2025-11-06 01:30:44,281 - core.content_filter - INFO - 🚫 Bloqueado por lista: ad.doubleclick.net
+2025-11-06 01:33:21,623 - web.app - WARNING - ❌ No se pudo cargar setting.py, usando funciones fallback
+2025-11-06 01:33:21,663 - __main__ - INFO - 🚀 Proxy doméstico iniciado correctamente
+2025-11-06 01:33:21,668 - __main__ - INFO - 🌐 Panel web disponible en: http://192.168.100.68:8081
+2025-11-06 01:33:21,669 - __main__ - INFO - 🔌 Proxy escuchando en: 0.0.0.0:8080
+2025-11-06 01:33:21,673 - __main__ - INFO - 📊 Logs disponibles en: http://192.168.100.68:8081/logs
+2025-11-06 01:33:21,675 - core.content_filter - INFO - 📋 0 reglas cargadas de youtube_ads.txt
+2025-11-06 01:33:21,676 - core.content_filter - INFO - ✅ Lista cargada: youtube_ads.txt
+2025-11-06 01:33:22,404 - core.content_filter - INFO - 📋 107762 reglas cargadas de steven_black.txt
+2025-11-06 01:33:22,404 - core.content_filter - INFO - ✅ Lista cargada: steven_black.txt
+2025-11-06 01:33:22,419 - __main__ - INFO - Iniciando dashboard web...
+2025-11-06 01:33:22,439 - __main__ - INFO - 🌐 Dashboard web iniciado en: http://192.168.100.68:8081
+2025-11-06 01:33:22,451 - core.content_filter - INFO - 📋 0 reglas cargadas de youtube_ads.txt
+2025-11-06 01:33:22,453 - core.content_filter - INFO - ✅ Lista cargada: youtube_ads.txt
+2025-11-06 01:33:22,749 - waitress - INFO - Serving on http://0.0.0.0:8081
+2025-11-06 01:33:23,308 - core.content_filter - INFO - 📋 107762 reglas cargadas de steven_black.txt
+2025-11-06 01:33:23,320 - core.content_filter - INFO - ✅ Lista cargada: steven_black.txt
+2025-11-06 01:33:23,339 - core.proxy_server - INFO - 🚀 Proxy server started on 0.0.0.0:8080
+2025-11-06 01:33:23,340 - core.proxy_server - INFO - ✅ HTTP and HTTPS forwarding enabled
+2025-11-06 01:33:23,448 - core.content_filter - INFO - 📥 Lista descargada: tracking.txt
+2025-11-06 01:33:23,669 - core.content_filter - INFO - 📋 1526 reglas cargadas de tracking.txt
+2025-11-06 01:33:23,669 - core.content_filter - INFO - ✅ Lista cargada: tracking.txt
+2025-11-06 02:02:29,968 - core.content_filter - INFO - 🚫 Bloqueado por lista: app-measurement.com
+2025-11-06 02:04:31,495 - core.content_filter - INFO - 🚫 Bloqueado por lista: ad.doubleclick.net
+2025-11-06 02:07:21,261 - core.content_filter - INFO - 🚫 Bloqueado por lista: www.googleadservices.com
+2025-11-06 02:18:40,114 - core.content_filter - INFO - 🚫 Bloqueado por blacklist: pagead2.googlesyndication.com
+2025-11-06 02:18:40,147 - core.content_filter - INFO - 🚫 Bloqueado por lista: ad.doubleclick.net
+2025-11-06 02:18:40,148 - core.content_filter - INFO - 🚫 Bloqueado por lista: ade.googlesyndication.com
+2025-11-06 02:18:42,433 - core.content_filter - INFO - 🚫 Bloqueado por blacklist: pagead2.googlesyndication.com
+2025-11-06 02:18:45,792 - core.content_filter - INFO - 🚫 Bloqueado por lista: ad.doubleclick.net
+2025-11-06 02:24:18,218 - core.content_filter - INFO - 🚫 Bloqueado por lista: www.googleadservices.com
+2025-11-06 02:24:23,287 - core.content_filter - INFO - 🚫 Bloqueado por lista: www.googleadservices.com
+2025-11-06 02:26:21,276 - core.proxy_server - ERROR - Error fetching http://edgedl.me.gvt1.com/edgedl/diffgen-puffin/khaoiebndkojlmppeemjhbpbandiljpe/303758eba3c3ef8733368ad94afda40d4360491066ccc4bfce96972feb0853d0: Cannot connect to host edgedl.me.gvt1.com:80 ssl:False [getaddrinfo failed]
+2025-11-06 02:26:21,346 - core.proxy_server - ERROR - Error fetching http://iess.gob.ec/iNotes.nsf/DWAIcon.png: [WinError 64] El nombre de red especificado ya no está disponible
+2025-11-06 02:26:21,362 - core.proxy_server - ERROR - HTTPS CONNECT error for edgedl.me.gvt1.com:443: [Errno 11001] getaddrinfo failed
+2025-11-06 02:32:25,762 - core.content_filter - INFO - 🚫 Bloqueado por patrón: www.tjk-njk.com - https://www.tjk-njk.com:443...
+2025-11-06 02:37:17,760 - web.app - WARNING - ❌ No se pudo cargar setting.py, usando funciones fallback
+2025-11-06 02:37:17,918 - web.app - INFO - Usuario admin creado con contraseña por defecto: admin123
+2025-11-06 02:37:17,946 - __main__ - INFO - 🚀 Proxy doméstico iniciado correctamente
+2025-11-06 02:37:17,946 - __main__ - INFO - 🌐 Panel web disponible en: http://192.168.100.68:8081
+2025-11-06 02:37:17,946 - __main__ - INFO - 🔌 Proxy escuchando en: 0.0.0.0:8080
+2025-11-06 02:37:17,966 - __main__ - INFO - 📊 Logs disponibles en: http://192.168.100.68:8081/logs
+2025-11-06 02:37:17,970 - core.content_filter - INFO - 📋 0 reglas cargadas de youtube_ads.txt
+2025-11-06 02:37:17,973 - core.content_filter - INFO - ✅ Lista cargada: youtube_ads.txt
+2025-11-06 02:37:18,743 - core.content_filter - INFO - 📋 107762 reglas cargadas de steven_black.txt
+2025-11-06 02:37:18,743 - core.content_filter - INFO - ✅ Lista cargada: steven_black.txt
+2025-11-06 02:37:18,908 - core.content_filter - INFO - 📋 1526 reglas cargadas de tracking.txt
+2025-11-06 02:37:18,909 - core.content_filter - INFO - ✅ Lista cargada: tracking.txt
+2025-11-06 02:37:18,911 - __main__ - INFO - Iniciando dashboard web...
+2025-11-06 02:37:18,927 - __main__ - INFO - 🌐 Dashboard web iniciado en: http://192.168.100.68:8081
+2025-11-06 02:37:18,930 - __main__ - ERROR - Error iniciando dashboard web: The "app" passed to ``create_server`` was ``None``.  You forgot to return a WSGI app within your application.
+2025-11-06 02:39:00,782 - web.app - WARNING - ❌ No se pudo cargar setting.py, usando funciones fallback
+2025-11-06 02:39:00,819 - __main__ - INFO - 🚀 Proxy doméstico iniciado correctamente
+2025-11-06 02:39:00,820 - __main__ - INFO - 🌐 Panel web disponible en: http://192.168.100.68:8081
+2025-11-06 02:39:00,820 - __main__ - INFO - 🔌 Proxy escuchando en: 0.0.0.0:8080
+2025-11-06 02:39:00,821 - __main__ - INFO - 📊 Logs disponibles en: http://192.168.100.68:8081/logs
+2025-11-06 02:39:00,823 - core.content_filter - INFO - 📋 0 reglas cargadas de youtube_ads.txt
+2025-11-06 02:39:00,823 - core.content_filter - INFO - ✅ Lista cargada: youtube_ads.txt
+2025-11-06 02:39:01,495 - core.content_filter - INFO - 📋 107762 reglas cargadas de steven_black.txt
+2025-11-06 02:39:01,495 - core.content_filter - INFO - ✅ Lista cargada: steven_black.txt
+2025-11-06 02:39:01,651 - core.content_filter - INFO - 📋 1526 reglas cargadas de tracking.txt
+2025-11-06 02:39:01,651 - core.content_filter - INFO - ✅ Lista cargada: tracking.txt
+2025-11-06 02:39:01,651 - __main__ - INFO - Iniciando dashboard web...
+2025-11-06 02:39:01,669 - __main__ - INFO - 🌐 Dashboard web iniciado en: http://192.168.100.68:8081
+2025-11-06 02:39:01,671 - __main__ - ERROR - Error iniciando dashboard web: The "app" passed to ``create_server`` was ``None``.  You forgot to return a WSGI app within your application.
+2025-11-06 02:55:01,167 - web.app - WARNING - ❌ No se pudo cargar setting.py, usando funciones fallback
+2025-11-06 02:55:01,167 - __main__ - INFO - ✅ Módulos importados correctamente
+2025-11-06 02:55:01,167 - __main__ - INFO - 🚀 Iniciando servidor proxy en hilo separado...
+2025-11-06 02:55:01,177 - __main__ - INFO - 🔄 Iniciando base de datos...
+2025-11-06 02:55:01,187 - __main__ - INFO - 🔄 Iniciando servidor proxy...
+2025-11-06 02:55:01,189 - core.content_filter - INFO - 📋 0 reglas cargadas de youtube_ads.txt
+2025-11-06 02:55:01,189 - core.content_filter - INFO - ✅ Lista cargada: youtube_ads.txt
+2025-11-06 02:55:01,858 - core.content_filter - INFO - 📋 107762 reglas cargadas de steven_black.txt
+2025-11-06 02:55:01,858 - core.content_filter - INFO - ✅ Lista cargada: steven_black.txt
+2025-11-06 02:55:02,024 - core.content_filter - INFO - 📋 1526 reglas cargadas de tracking.txt
+2025-11-06 02:55:02,024 - core.content_filter - INFO - ✅ Lista cargada: tracking.txt
+2025-11-06 02:55:02,024 - core.proxy_server - INFO - 🚀 Proxy server started on 0.0.0.0:8080
+2025-11-06 02:55:02,024 - core.proxy_server - INFO - ✅ HTTP and HTTPS forwarding enabled
+2025-11-06 02:55:03,175 - __main__ - INFO - 🌐 Iniciando dashboard web...
+2025-11-06 02:55:03,175 - __main__ - INFO - 🔄 Creando aplicación web...
+2025-11-06 02:55:03,192 - web.app - INFO - ✅ Aplicación Flask creada correctamente
+2025-11-06 02:55:03,197 - __main__ - INFO - 🌐 Iniciando dashboard web en 0.0.0.0:8081...
+2025-11-06 02:55:03,216 - waitress - INFO - Serving on http://0.0.0.0:8081
+2025-11-06 02:56:05,178 - web.app - INFO - Login exitoso para usuario: admin
+2025-11-06 02:57:01,402 - core.content_filter - INFO - 🚫 Bloqueado por lista: beacons.gvt2.com
+2025-11-06 02:57:01,492 - core.content_filter - INFO - 🚫 Bloqueado por lista: beacons2.gvt2.com
+2025-11-06 03:02:30,067 - core.content_filter - INFO - 🚫 Bloqueado por lista: app-measurement.com
+2025-11-06 03:06:58,443 - web.app - WARNING - ❌ No se pudo cargar setting.py, usando funciones fallback
+2025-11-06 03:06:58,443 - __main__ - INFO - ✅ Módulos importados correctamente
+2025-11-06 03:06:58,463 - __main__ - INFO - 🚀 Iniciando servidor proxy en hilo separado...
+2025-11-06 03:06:58,467 - __main__ - INFO - 🔄 Iniciando base de datos...
+2025-11-06 03:06:58,475 - __main__ - INFO - 🔄 Iniciando servidor proxy...
+2025-11-06 03:06:58,479 - core.content_filter - INFO - 📋 0 reglas cargadas de youtube_ads.txt
+2025-11-06 03:06:58,480 - core.content_filter - INFO - ✅ Lista cargada: youtube_ads.txt
+2025-11-06 03:06:59,140 - core.content_filter - INFO - 📋 107762 reglas cargadas de steven_black.txt
+2025-11-06 03:06:59,140 - core.content_filter - INFO - ✅ Lista cargada: steven_black.txt
+2025-11-06 03:06:59,288 - core.content_filter - INFO - 📋 1526 reglas cargadas de tracking.txt
+2025-11-06 03:06:59,288 - core.content_filter - INFO - ✅ Lista cargada: tracking.txt
+2025-11-06 03:06:59,288 - core.proxy_server - INFO - 🚀 Proxy server started on 0.0.0.0:8080
+2025-11-06 03:06:59,288 - core.proxy_server - INFO - ✅ HTTP and HTTPS forwarding enabled
+2025-11-06 03:07:00,480 - __main__ - INFO - 🌐 Iniciando dashboard web...
+2025-11-06 03:07:00,480 - __main__ - INFO - 🔄 Creando aplicación web...
+2025-11-06 03:07:00,499 - web.app - INFO - ✅ Aplicación Flask creada correctamente
+2025-11-06 03:07:00,501 - __main__ - INFO - 🌐 Iniciando dashboard web en 0.0.0.0:8081...
+2025-11-06 03:07:00,514 - waitress - INFO - Serving on http://0.0.0.0:8081
+2025-11-06 03:07:07,335 - web.app - WARNING - ❌ No se pudo cargar setting.py, usando funciones fallback
+2025-11-06 03:07:07,335 - __main__ - INFO - ✅ Módulos importados correctamente
+2025-11-06 03:07:07,351 - __main__ - INFO - 🚀 Iniciando servidor proxy en hilo separado...
+2025-11-06 03:07:07,351 - __main__ - INFO - 🔄 Iniciando base de datos...
+2025-11-06 03:07:07,351 - __main__ - INFO - 🔄 Iniciando servidor proxy...
+2025-11-06 03:07:07,368 - core.content_filter - INFO - 📋 0 reglas cargadas de youtube_ads.txt
+2025-11-06 03:07:07,368 - core.content_filter - INFO - ✅ Lista cargada: youtube_ads.txt
+2025-11-06 03:07:08,103 - core.content_filter - INFO - 📋 107762 reglas cargadas de steven_black.txt
+2025-11-06 03:07:08,107 - core.content_filter - INFO - ✅ Lista cargada: steven_black.txt
+2025-11-06 03:07:08,263 - core.content_filter - INFO - 📋 1526 reglas cargadas de tracking.txt
+2025-11-06 03:07:08,264 - core.content_filter - INFO - ✅ Lista cargada: tracking.txt
+2025-11-06 03:07:08,266 - core.proxy_server - INFO - 🚀 Proxy server started on 0.0.0.0:8080
+2025-11-06 03:07:08,266 - core.proxy_server - INFO - ✅ HTTP and HTTPS forwarding enabled
+2025-11-06 03:07:09,356 - __main__ - INFO - 🌐 Iniciando dashboard web...
+2025-11-06 03:07:09,357 - __main__ - INFO - 🔄 Creando aplicación web...
+2025-11-06 03:07:09,357 - web.app - INFO - ✅ Aplicación Flask creada correctamente
+2025-11-06 03:07:09,377 - __main__ - INFO - 🌐 Iniciando dashboard web en 0.0.0.0:8081...
+2025-11-06 03:07:09,383 - waitress - INFO - Serving on http://0.0.0.0:8081
+2025-11-06 03:07:20,548 - web.app - INFO - Login exitoso para usuario: admin
+2025-11-06 03:08:48,204 - web.app - INFO - Contraseña cambiada para usuario: admin
+2025-11-06 03:10:13,743 - core.proxy_server - ERROR - HTTPS CONNECT error for [2800:2a0:ffff:11:face:b00c:3333:7020]:443: too many values to unpack (expected 2)
+2025-11-06 03:11:32,889 - web.app - INFO - Login exitoso para usuario: admin
+2025-11-06 03:13:21,792 - core.content_filter - INFO - 🚫 Bloqueado por blacklist: pagead2.googlesyndication.com
+2025-11-06 03:13:21,826 - core.content_filter - INFO - 🚫 Bloqueado por lista: ad.doubleclick.net
+2025-11-06 03:13:21,831 - core.content_filter - INFO - 🚫 Bloqueado por lista: ade.googlesyndication.com
+2025-11-06 03:13:22,477 - core.content_filter - INFO - 🚫 Bloqueado por lista: ad.doubleclick.net
+2025-11-06 03:13:23,902 - core.content_filter - INFO - 🚫 Bloqueado por blacklist: pagead2.googlesyndication.com
+2025-11-06 03:13:28,107 - core.content_filter - INFO - 🚫 Bloqueado por lista: ad.doubleclick.net
+2025-11-06 03:13:28,884 - core.content_filter - INFO - 🚫 Bloqueado por lista: ad.doubleclick.net
+2025-11-06 03:17:44,821 - core.content_filter - INFO - 🚫 Bloqueado por lista: www.googleadservices.com
+2025-11-06 03:17:44,875 - core.content_filter - INFO - 🚫 Bloqueado por lista: www.googleadservices.com
+2025-11-06 03:17:45,433 - core.content_filter - INFO - 🚫 Bloqueado por lista: www.googleadservices.com
+2025-11-06 03:36:56,675 - core.content_filter - INFO - 🚫 Bloqueado por lista: www.googleadservices.com
+2025-11-06 03:36:57,276 - core.content_filter - INFO - 🚫 Bloqueado por lista: www.googleadservices.com
+2025-11-06 03:37:16,670 - core.content_filter - INFO - 🚫 Bloqueado por lista: www.googleadservices.com
+2025-11-06 03:37:28,787 - core.content_filter - INFO - 🚫 Bloqueado por lista: ade.googlesyndication.com
+2025-11-06 03:37:28,841 - core.content_filter - INFO - 🚫 Bloqueado por blacklist: pagead2.googlesyndication.com
+2025-11-06 03:37:28,848 - core.content_filter - INFO - 🚫 Bloqueado por lista: ad.doubleclick.net
+2025-11-06 03:37:28,863 - core.content_filter - INFO - 🚫 Bloqueado por lista: ade.googlesyndication.com
+2025-11-06 03:37:29,399 - core.content_filter - INFO - 🚫 Bloqueado por lista: ad.doubleclick.net
+2025-11-06 03:37:30,937 - core.content_filter - INFO - 🚫 Bloqueado por blacklist: pagead2.googlesyndication.com
+2025-11-06 03:37:32,656 - core.content_filter - INFO - 🚫 Bloqueado por lista: ade.googlesyndication.com
+2025-11-06 03:37:36,398 - core.content_filter - INFO - 🚫 Bloqueado por blacklist: pagead2.googlesyndication.com
+2025-11-06 03:37:36,401 - core.content_filter - INFO - 🚫 Bloqueado por lista: ade.googlesyndication.com
+2025-11-06 03:37:40,170 - core.content_filter - INFO - 🚫 Bloqueado por lista: ade.googlesyndication.com
+2025-11-06 03:37:43,986 - core.content_filter - INFO - 🚫 Bloqueado por lista: ad.doubleclick.net
+2025-11-06 03:37:44,008 - core.content_filter - INFO - 🚫 Bloqueado por lista: ade.googlesyndication.com
+2025-11-06 03:39:05,955 - web.app - WARNING - ❌ No se pudo cargar setting.py, usando funciones fallback
+2025-11-06 03:39:05,957 - __main__ - INFO - ✅ Módulos importados correctamente
+2025-11-06 03:39:05,963 - __main__ - INFO - 🚀 Iniciando servidor proxy en hilo separado...
+2025-11-06 03:39:05,966 - __main__ - INFO - 🔄 Iniciando base de datos...
+2025-11-06 03:39:05,976 - __main__ - INFO - 🔄 Iniciando servidor proxy...
+2025-11-06 03:39:05,978 - core.content_filter - INFO - 📋 0 reglas cargadas de youtube_ads.txt
+2025-11-06 03:39:05,978 - core.content_filter - INFO - ✅ Lista cargada: youtube_ads.txt
+2025-11-06 03:39:06,644 - core.content_filter - INFO - 📋 107762 reglas cargadas de steven_black.txt
+2025-11-06 03:39:06,649 - core.content_filter - INFO - ✅ Lista cargada: steven_black.txt
+2025-11-06 03:39:06,795 - core.content_filter - INFO - 📋 1526 reglas cargadas de tracking.txt
+2025-11-06 03:39:06,795 - core.content_filter - INFO - ✅ Lista cargada: tracking.txt
+2025-11-06 03:39:06,796 - core.proxy_server - INFO - 🚀 Proxy server started on 0.0.0.0:8080
+2025-11-06 03:39:06,797 - core.proxy_server - INFO - ✅ HTTP and HTTPS forwarding enabled
+2025-11-06 03:39:07,969 - __main__ - INFO - 🌐 Iniciando dashboard web...
+2025-11-06 03:39:07,970 - __main__ - INFO - 🔄 Creando aplicación web...
+2025-11-06 03:39:07,996 - web.app - INFO - ✅ Aplicación Flask creada correctamente
+2025-11-06 03:39:07,996 - __main__ - INFO - 🌐 Iniciando dashboard web en 0.0.0.0:8081...
+2025-11-06 03:39:08,023 - waitress - INFO - Serving on http://0.0.0.0:8081
+2025-11-06 03:44:46,401 - core.content_filter - INFO - 🚫 Bloqueado por lista: www.googleadservices.com
+2025-11-06 03:44:46,929 - core.content_filter - INFO - 🚫 Bloqueado por lista: www.googleadservices.com
+2025-11-06 03:44:51,599 - core.content_filter - INFO - 🚫 Bloqueado por lista: www.googleadservices.com
+2025-11-06 04:31:00,899 - core.content_filter - INFO - 🚫 Bloqueado por lista: www.googleadservices.com
+2025-11-06 04:31:01,464 - core.content_filter - INFO - 🚫 Bloqueado por lista: www.googleadservices.com
+2025-11-06 04:49:50,790 - core.content_filter - INFO - 🚫 Bloqueado por lista: www.googleadservices.com
+2025-11-06 04:50:10,816 - core.content_filter - INFO - 🚫 Bloqueado por lista: www.googleadservices.com
+2025-11-06 04:50:51,270 - core.content_filter - INFO - 🚫 Bloqueado por lista: ade.googlesyndication.com
+2025-11-06 04:50:51,317 - core.content_filter - INFO - 🚫 Bloqueado por blacklist: pagead2.googlesyndication.com
+2025-11-06 04:50:51,317 - core.content_filter - INFO - 🚫 Bloqueado por lista: ad.doubleclick.net
+2025-11-06 04:50:51,340 - core.content_filter - INFO - 🚫 Bloqueado por lista: ade.googlesyndication.com
+2025-11-06 04:50:51,891 - core.content_filter - INFO - 🚫 Bloqueado por lista: ad.doubleclick.net
+2025-11-06 04:50:53,421 - core.content_filter - INFO - 🚫 Bloqueado por blacklist: pagead2.googlesyndication.com
+2025-11-06 04:51:06,548 - core.content_filter - INFO - 🚫 Bloqueado por blacklist: pagead2.googlesyndication.com
+2025-11-06 04:51:21,366 - core.content_filter - INFO - 🚫 Bloqueado por lista: ade.googlesyndication.com
+2025-11-06 04:51:42,928 - core.content_filter - INFO - 🚫 Bloqueado por lista: ade.googlesyndication.com
+2025-11-06 04:52:34,349 - core.content_filter - INFO - 🚫 Bloqueado por lista: ade.googlesyndication.com
+2025-11-06 04:52:59,957 - core.content_filter - INFO - 🚫 Bloqueado por lista: ad.doubleclick.net
+2025-11-06 04:58:18,961 - core.content_filter - INFO - 🚫 Bloqueado por blacklist: googleads.g.doubleclick.net
+2025-11-06 04:58:19,108 - core.content_filter - INFO - 🚫 Bloqueado por blacklist: googleads.g.doubleclick.net
+2025-11-06 04:58:19,238 - core.content_filter - INFO - 🚫 Bloqueado por blacklist: googleads.g.doubleclick.net
