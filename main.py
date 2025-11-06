@@ -36,13 +36,13 @@ def load_config():
     BASE_DIR = Path(__file__).parent
     
     # OBTENER PUERTO DE RENDER - CLAVE PARA FUNCIONAR
-    RENDER_PORT = os.environ.get('PORT', '8080')
+    RENDER_PORT = os.environ.get('PORT', '10000')
     
     DEFAULT_CONFIG = {
         "proxy_host": "0.0.0.0",
-        "proxy_port": int(RENDER_PORT),  # Usar puerto de Render
+        "proxy_port": 8080,  # Proxy en puerto interno
         "web_host": "0.0.0.0",
-        "web_port": 10000,  # Puerto diferente para dashboard
+        "web_port": int(RENDER_PORT),  # Dashboard usa puerto de Render
         "dashboard_domain": "familiasaldarreaga.dzknight.com",
         "dashboard_title": "Proxy Familiar - Familia Saldarreaga",
         "security": {
@@ -123,9 +123,9 @@ def load_config():
             
             deep_update(config, user_config)
             
-            # FORZAR puerto de Render incluso si hay config existente
+            # FORZAR puerto de Render para el dashboard
             if os.environ.get('PORT'):
-                config['proxy_port'] = int(os.environ.get('PORT'))
+                config['web_port'] = int(os.environ.get('PORT'))
             
         else:
             config = DEFAULT_CONFIG.copy()
@@ -160,27 +160,6 @@ except ImportError as e:
     logger.error("- web/app.py") 
     logger.error("- data/database.py")
     sys.exit(1)
-
-# =========================
-# Servidor Flask auxiliar
-# =========================
-log_app = Flask(__name__)
-
-@log_app.route("/logs")
-def ver_logs():
-    """Ver logs en el navegador"""
-    if not os.path.exists(LOG_PATH):
-        return jsonify({"error": "El archivo de logs no existe"}), 404
-    with open(LOG_PATH, "r", encoding="utf-8") as f:
-        contenido = f.read()
-    return f"<pre>{contenido}</pre>"
-
-@log_app.route("/logs/download")
-def descargar_logs():
-    """Descargar el archivo de logs"""
-    if not os.path.exists(LOG_PATH):
-        return jsonify({"error": "El archivo de logs no existe"}), 404
-    return send_file(LOG_PATH, as_attachment=True)
 
 # =========================
 # Clase principal del proxy
@@ -248,9 +227,8 @@ class DomesticProxy:
                 <html>
                 <body>
                     <h1>⚠️ Proxy Familiar - Dashboard No Disponible</h1>
-                    <p>El servidor proxy está funcionando en el puerto {self.config['proxy_port']}</p>
-                    <p>El dashboard no está disponible debido a: {str(e)}</p>
-                    <p><a href="/logs">Ver logs</a></p>
+                    <p>Error: {str(e)}</p>
+                    <p>El proxy está ejecutándose en puerto interno.</p>
                 </body>
                 </html>
                 """
@@ -290,16 +268,12 @@ if __name__ == "__main__":
         logger.info("🚀 INICIANDO EN MODO RENDER...")
         logger.info(f"📍 Puerto asignado por Render: {os.environ.get('PORT')}")
         
-        # En Render: Solo ejecutar el proxy (servicio principal)
+        # En Render: Solo ejecutar el DASHBOARD como servicio principal
         proxy = DomesticProxy()
         
-        # Verificar configuración crítica
-        if proxy.config['proxy_port'] != int(os.environ.get('PORT', '8080')):
-            logger.warning("⚠️  El puerto del proxy no coincide con el de Render, ajustando...")
-            proxy.config['proxy_port'] = int(os.environ.get('PORT', '8080'))
-        
-        # Ejecutar solo el proxy en el hilo principal
-        run_proxy_server(proxy)
+        # Solo iniciar el dashboard web en el hilo principal
+        logger.info("🌐 Iniciando solo dashboard web (servicio principal en Render)...")
+        proxy.start_web_dashboard()
         
     else:
         # Desarrollo local: Ambos servicios
