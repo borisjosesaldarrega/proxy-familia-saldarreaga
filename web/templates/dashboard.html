@@ -139,6 +139,11 @@
         .system-health.danger {
             border-left-color: var(--danger-color);
         }
+
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
@@ -572,6 +577,7 @@
         let sessionExpiry = 0;
         let sessionTimer = null;
         let mitmEnabled = false;
+        let currentBlockingState = true;
 
         // Inicializar la página
         document.addEventListener('DOMContentLoaded', function() {
@@ -608,7 +614,8 @@
                 
                 // Actualizar estado del filtro
                 const filterStatus = document.getElementById('filterStatus');
-                if (stats.blocking_enabled !== false) {
+                currentBlockingState = stats.blocking_enabled !== false;
+                if (currentBlockingState) {
                     filterStatus.className = 'badge bg-success';
                     filterStatus.innerHTML = '<i class="fas fa-check me-1"></i>Sí';
                 } else {
@@ -723,8 +730,9 @@
 
                 const data = await res.json();
                 if (data.status === 'success') {
+                    currentBlockingState = enable;
                     showToast(`Bloqueo ${enable ? 'activado' : 'desactivado'} correctamente`, 'success');
-                    setTimeout(() => refreshStats(), 1000);
+                    await refreshStats(); // Forzar actualización inmediata
                 } else {
                     throw new Error(data.message || 'Error al actualizar configuración');
                 }
@@ -787,10 +795,8 @@
                 if (data.status === 'success') {
                     showToast(`✅ Dominio bloqueado: ${domain}`, 'success');
                     domainInput.value = '';
-                    setTimeout(() => {
-                        loadFilterLists();
-                        refreshStats();
-                    }, 1000);
+                    // Actualizar inmediatamente las listas y estadísticas
+                    await Promise.all([loadFilterLists(), refreshStats()]);
                 } else {
                     showToast('❌ Error al bloquear el dominio: ' + (data.message || ''), 'danger');
                 }
@@ -832,10 +838,8 @@
                 if (data.status === 'success') {
                     showToast(`✅ Dominio permitido: ${domain}`, 'success');
                     domainInput.value = '';
-                    setTimeout(() => {
-                        loadFilterLists();
-                        refreshStats();
-                    }, 1000);
+                    // Actualizar inmediatamente las listas y estadísticas
+                    await Promise.all([loadFilterLists(), refreshStats()]);
                 } else {
                     showToast('❌ Error al permitir el dominio: ' + (data.message || ''), 'danger');
                 }
@@ -853,15 +857,18 @@
             if (!confirm("¿Seguro que deseas limpiar la caché del proxy?\nEsto puede afectar el rendimiento temporalmente.")) return;
 
             try {
+                const csrfToken = document.getElementById('csrf_token').value;
                 const res = await fetch("/api/clear_cache", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" }
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ csrf_token: csrfToken })
                 });
 
                 const data = await res.json();
                 if (data.status === 'success') {
                     showToast("✅ " + data.message, 'success');
-                    setTimeout(() => loadCacheStats(), 1000);
+                    await loadCacheStats();
+                    await refreshStats();
                 } else {
                     showToast("❌ " + (data.message || "Error al limpiar la caché"), 'danger');
                 }
@@ -924,11 +931,25 @@
 
         async function updateBlockLists() {
             showToast('Actualizando listas de bloqueo...', 'info');
-            // Esta función necesitaría ser implementada en el backend
-            setTimeout(() => {
-                showToast('Listas de bloqueo actualizadas correctamente', 'success');
-                loadFilterLists();
-            }, 2000);
+            
+            try {
+                const csrfToken = document.getElementById('csrf_token').value;
+                const res = await fetch('/api/update_lists', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ csrf_token: csrfToken })
+                });
+
+                const data = await res.json();
+                if (data.status === 'success') {
+                    showToast('✅ Listas de bloqueo actualizadas correctamente', 'success');
+                    await Promise.all([loadFilterLists(), refreshStats()]);
+                } else {
+                    showToast('❌ Error al actualizar listas: ' + data.message, 'danger');
+                }
+            } catch (err) {
+                showToast('❌ Error al actualizar listas: ' + err.message, 'danger');
+            }
         }
 
         // Utilidades
