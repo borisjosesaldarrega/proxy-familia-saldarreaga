@@ -9,60 +9,214 @@ BASE_DIR = Path(__file__).parent
 RENDER_PORT = os.environ.get('PORT', '10000')
 
 DEFAULT_CONFIG = {
+    # ===== CONFIGURACIÓN DE PUERTOS =====
     "proxy_host": "0.0.0.0",
-    "proxy_port": int(RENDER_PORT),  # Usar puerto de Render para el servicio principal
+    "proxy_port": 8080,  # Puerto del proxy HTTP
     "web_host": "0.0.0.0",
-    "web_port": 8081,  # Dashboard en puerto interno
-    "dashboard_domain": "familiasaldarreaga.dzknight.com",
-    "dashboard_title": "Proxy Familiar - Familia Saldarreaga",
+    "web_port": int(RENDER_PORT),  # Dashboard usa puerto de Render
+    
+    # ===== CONFIGURACIÓN DEL DASHBOARD =====
+    "dashboard_domain": "proxy-familiar.onrender.com",
+    "dashboard_title": "Proxy Familiar - Control Parental",
+    
+    # ===== CONFIGURACIÓN DE SEGURIDAD =====
     "security": {
         "require_auth": True,
         "session_timeout": 3600,
         "max_login_attempts": 3,
         "lockout_time": 900
     },
+    
+    # ===== BASE DE DATOS =====
     "database_url": f"sqlite:///{BASE_DIR}/data/proxy.db",
+    
+    # ===== CACHE =====
     "cache_enabled": True,
     "cache_size": 1000,
     "cache_ttl": 3600,
+    
+    # ===== FILTRADO =====
     "blocking_enabled": True,
     "youtube_blocking": True,
     "aggressive_filtering": True,
     "block_trackers": True,
+    
+    # ===== LOGGING =====
     "log_level": "INFO",
+    
+    # ===== CERTIFICADOS SSL =====
     "cert_dir": str(BASE_DIR / "config" / "certs"),
+    
+    # ===== LISTAS DE BLOQUEO EXTERNAS =====
     "block_lists": {
+        # Anuncios generales
         "easylist": "https://easylist.to/easylist/easylist.txt",
         "easyprivacy": "https://easylist.to/easylist/easyprivacy.txt",
         "adguard_base": "https://raw.githubusercontent.com/AdguardTeam/AdguardFilters/master/BaseFilter/sections/base.txt",
-        "adguard_annoyances": "https://raw.githubusercontent.com/AdguardTeam/AdguardFilters/master/AnnoyancesFilter/sections/annoyances.txt",
-        "adguard_tracking": "https://raw.githubusercontent.com/AdguardTeam/AdguardFilters/master/SpywareFilter/sections/tracking_servers.txt",
+        
+        # Anuncios de YouTube
         "youtube_ads": "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/youtube.txt",
-        "malware_hosts": "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts"
+        
+        # Trackers
+        "adguard_tracking": "https://raw.githubusercontent.com/AdguardTeam/AdguardFilters/master/SpywareFilter/sections/tracking_servers.txt",
+        
+        # Malware
+        "malware_hosts": "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts",
+        
+        # Annoyances
+        "adguard_annoyances": "https://raw.githubusercontent.com/AdguardTeam/AdguardFilters/master/AnnoyancesFilter/sections/annoyances.txt"
     },
+
+    # ===== WHITELIST (DOMINIOS PERMITIDOS) =====
     "whitelist": [
+        # Microsoft Updates
         "update.microsoft.com",
         "windowsupdate.microsoft.com",
         "microsoft.com",
+        
+        # YouTube esencial
         "youtube.com",
         "www.youtube.com",
+        "youtu.be",
         "googlevideo.com",
         "ytimg.com",
         "ggpht.com",
         "gvt1.com",
-        "google.com"
+        "edgedl.me.gvt1.com",
+        
+        # Google esencial
+        "google.com",
+        "www.google.com",
+        "gstatic.com",
+        "fonts.googleapis.com",
+        "fonts.gstatic.com",
+        "googleusercontent.com",
+        
+        # DNS y conectividad
+        "8.8.8.8",
+        "8.8.4.4",
+        "1.1.1.1",
+        
+        # Sistema operativo
+        "apple.com",
+        "apps.apple.com",
+        "android.com",
+        "play.google.com",
+        
+        # Educación
+        "github.com",
+        "stackoverflow.com",
+        "wikipedia.org",
+        
+        # Correo
+        "gmail.com",
+        "outlook.com",
+        "live.com",
+        
+        # Nube
+        "drive.google.com",
+        "dropbox.com",
+        "onedrive.live.com"
     ],
+    
+    # ===== BLACKLIST (DOMINIOS BLOQUEADOS) =====
     "blacklist": [
+        # Anuncios de Google/YouTube
         "googleads.g.doubleclick.net",
-        "connect.facebook.net",
-        "ads.tiktok.com",
-        "googlesyndication.com",
         "doubleclick.net",
-        "googleadservices.com"
+        "googlesyndication.com",
+        "googleadservices.com",
+        "adservice.google.com",
+        "ads.youtube.com",
+        "videoads.google.com",
+        "pagead2.googlesyndication.com",
+        "tpc.googlesyndication.com",
+        "2mdn.net",
+        "googletagservices.com",
+        "googletagmanager.com",
+        
+        # Anuncios de Facebook
+        "connect.facebook.net",
+        "facebook.com",
+        "www.facebook.com",
+        "fbcdn.net",
+        "staticxx.facebook.com",
+        "static.xx.fbcdn.net",
+        
+        # Anuncios de TikTok
+        "ads.tiktok.com",
+        "analytics.tiktok.com",
+        "log-upload.tiktok.com",
+        "mon-va.tiktok.com",
+        
+        # Twitter/X
+        "twitter.com",
+        "www.twitter.com",
+        "twimg.com",
+        "t.co",
+        
+        # Analytics y Tracking
+        "google-analytics.com",
+        "www.google-analytics.com",
+        "analytics.google.com",
+        "stats.g.doubleclick.net",
+        "www-googletagmanager.l.google.com",
+        
+        # Redes publicitarias
+        "adnxs.com",
+        "adsystem.snapchat.com",
+        "amazon-adsystem.com",
+        "bat.bing.com",
+        "c.amazon-adsystem.com",
+        "securepubads.g.doubleclick.net",
+        
+        # Anuncios de video
+        "ads.videoplaza.com",
+        "youtube.com/api/stats/ads",
+        "youtube.com/pagead",
+        "youtube.com/ptracking",
+        "youtube.com/get_midroll",
+        
+        # Malware y scams
+        "popads.net",
+        "propellerads.com",
+        "push-notifications.com",
+        "coin-hive.com",
+        
+        # Trackers de redes sociales
+        "pixel.facebook.com",
+        "tr.facebook.com",
+        "static.ads-twitter.com",
+        
+        # Anuncios móviles
+        "ads.mopub.com",
+        "applovin.com",
+        "unityads.unity3d.com",
+        
+        # Anuncios nativos
+        "outbrain.com",
+        "taboola.com",
+        "revcontent.com",
+        
+        # YouTube ads específicos
+        "youtube.com/ad_companion",
+        "youtube.com/adlog",
+        "youtube.com/api/stats/qoe",
+        "youtube.com/generate_204",
+        "youtube.com/live_chat_replay",
+        "youtube.com/pagead/interaction",
+        "youtube.com/pagead/lvz",
+        "youtube.com/pagead/viewthroughconversion",
+        "youtube.com/s/player",
+        "youtube.com/youtubei/v1/log_event"
     ],
+    
+    # ===== USER AGENTS =====
     "user_agents": [
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:89.0) Gecko/20100101 Firefox/89.0"
     ]
 }
 
@@ -107,6 +261,10 @@ def load_config():
                         default[key] = value
             
             deep_update(config, user_config)
+            
+            # Forzar puerto de Render si está en entorno de Render
+            if os.environ.get('PORT'):
+                config['web_port'] = int(os.environ.get('PORT'))
             
         else:
             config = DEFAULT_CONFIG.copy()
@@ -161,3 +319,24 @@ def remove_from_whitelist(domain):
         save_config(config)
         print(f"[INFO] Dominio removido de whitelist: {domain}")
     return config
+
+# Configuración específica para desarrollo
+def is_render_environment():
+    """Verificar si estamos en entorno de Render"""
+    return os.environ.get('RENDER') is not None or os.environ.get('PORT') is not None
+
+def get_proxy_url():
+    """Obtener URL del proxy según el entorno"""
+    config = load_config()
+    if is_render_environment():
+        return f"https://{config['dashboard_domain']}"
+    else:
+        return f"http://localhost:{config['proxy_port']}"
+
+def get_dashboard_url():
+    """Obtener URL del dashboard según el entorno"""
+    config = load_config()
+    if is_render_environment():
+        return f"https://{config['dashboard_domain']}"
+    else:
+        return f"http://localhost:{config['web_port']}"
