@@ -34,8 +34,6 @@ try:
     from config import load_config, save_config, add_to_blacklist, add_to_whitelist
     logger.info("✅ config.py cargado correctamente")
 except ImportError as e:
-    logger.error(f"❌ Error importando config.py: {e}")
-    sys.exit(1)
 
 # =========================
 # Importar otros módulos
