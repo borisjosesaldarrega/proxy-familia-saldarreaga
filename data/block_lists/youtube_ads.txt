@@ -1,1 +1,128 @@
-404: Not Found
+# YouTube Ads Blocklist - Lista Ampliada
+# Bloqueo de dominios relacionados con anuncios en YouTube
+#
+# Proyecto base: https://github.com/anudeepND/youtubeadsblacklist
+# Licencia: MIT License (https://opensource.org/licenses/MIT)
+#
+# Última actualización: 2024
+# Contribuciones por: anudeepND y comunidad open-source
+
+# ========== DOMINIOS PRINCIPALES DE YOUTUBE ADS ==========
+127.0.0.1 pagead2.googlesyndication.com
+127.0.0.1 pubads.g.doubleclick.net
+127.0.0.1 ad.doubleclick.net
+127.0.0.1 googleads.g.doubleclick.net
+127.0.0.1 static.doubleclick.net
+127.0.0.1 video-ad-stats.l.google.com
+127.0.0.1 s.youtube.com
+127.0.0.1 ads.youtube.com
+127.0.0.1 www.googleadservices.com
+127.0.0.1 partnerad.l.google.com
+127.0.0.1 pagead-googlehosted.l.google.com
+127.0.0.1 pagead.l.google.com
+127.0.0.1 tpc.googlesyndication.com
+
+# ========== DOMINIOS ADICIONALES DE GOOGLE ADS ==========
+127.0.0.1 googleads.googleapis.com
+127.0.0.1 adservice.google.com
+127.0.0.1 adservice.google.[TLD]
+127.0.0.1 www.googletagservices.com
+127.0.0.1 googletagservices.com
+127.0.0.1 google-analytics.com
+127.0.0.1 www.google-analytics.com
+127.0.0.1 stats.g.doubleclick.net
+127.0.0.1 doubleclick.net
+127.0.0.1 ads.google.com
+127.0.0.1 gstatic.com
+
+# ========== DOMINIOS DE SEGUIMIENTO Y ANALYTICS ==========
+127.0.0.1 www.youtube.com/api/stats/ads
+127.0.0.1 youtube.com/api/stats/ads
+127.0.0.1 s.ytimg.com
+127.0.0.1 www-google-analytics.l.google.com
+127.0.0.1 analytics.google.com
+127.0.0.1 telemetry.google.com
+
+# ========== DOMINIOS DE ANUNCIOS DE VIDEO ==========
+127.0.0.1 videoplayertraffic.com
+127.0.0.1 yt3.ggpht.com
+127.0.0.1 i.ytimg.com
+127.0.0.1 manifest.googlevideo.com
+127.0.0.1 redirector.googlevideo.com
+127.0.0.1 r*.googlevideo.com
+127.0.0.1 *.googlevideo.com
+
+# ========== DOMINIOS DE MEDICIÓN Y MÉTRICAS ==========
+127.0.0.1 adclick.g.doubleclick.net
+127.0.0.1 measure.admob.com
+127.0.0.1 mediavisor.doubleclick.com
+127.0.0.1 mobileads.google.com
+
+# ========== DOMINIOS DE ANUNCIOS EN DISPOSITIVOS MÓVILES ==========
+127.0.0.1 ads.gmodules.com
+127.0.0.1 ads.yap.yahoo.com
+127.0.0.1 ads1.doubleclick.net
+127.0.0.1 ads2.doubleclick.net
+
+# ========== DOMINIOS DE CONTENIDO PATROCINADO ==========
+127.0.0.1 sponsor.hackermoon.com
+127.0.0.1 sponsored-content.l.google.com
+127.0.0.1 promo-content.l.google.com
+
+# ========== DOMINIOS DE PUBLICIDAD PROGRAMÁTICA ==========
+127.0.0.1 securepubads.g.doubleclick.net
+127.0.0.1 partner.googleadservices.com
+127.0.0.1 cdn.doubleclick.net
+
+# ========== DOMINIOS DE ANUNCIOS DE TERCEROS ==========
+127.0.0.1 ad.*.youtube.com
+127.0.0.1 ads.*.youtube.com
+127.0.0.1 *.ads.youtube.com
+127.0.0.1 *.ad.youtube.com
+
+# ========== DOMINIOS DE GESTIÓN DE ANUNCIOS ==========
+127.0.0.1 admob.com
+127.0.0.1 admanager.google.com
+127.0.0.1 adx.google.com
+
+# ========== DOMINIOS DE REDES PUBLICITARIAS ==========
+127.0.0.1 googleads.g.doubleclick.net
+127.0.0.1 adsystem.google.com
+127.0.0.1 ad.linksynergy.com
+
+# ========== DOMINIOS DE OPTIMIZACIÓN DE ANUNCIOS ==========
+127.0.0.1 optimize.google.com
+127.0.0.1 optimize.l.google.com
+127.0.0.1 ads-optimization.l.google.com
+
+# ========== WILDCARDS PARA BLOQUEO EXHAUSTIVO ==========
+127.0.0.1 *.doubleclick.net
+127.0.0.1 *.googlesyndication.com
+127.0.0.1 *.googleadservices.com
+127.0.0.1 *.youtube.com/*ad*
+127.0.0.1 *.youtube.com/*ads*
+127.0.0.1 *.youtube.com/api/stats/ads
+127.0.0.1 *.youtube.com/pagead/*
+
+# ========== BLOQUEO DE IPv6 ==========
+::1 pagead2.googlesyndication.com
+::1 pubads.g.doubleclick.net
+::1 ad.doubleclick.net
+::1 googleads.g.doubleclick.net
+::1 static.doubleclick.net
+::1 video-ad-stats.l.google.com
+::1 s.youtube.com
+::1 ads.youtube.com
+::1 www.googleadservices.com
+
+# ========== NOTAS DE USO ==========
+# Esta lista debe agregarse al archivo hosts de tu sistema:
+# - Windows: C:\Windows\System32\drivers\etc\hosts
+# - Linux/Mac: /etc/hosts
+#
+# Para aplicar los cambios:
+# - Windows: Ejecutar "ipconfig /flushdns"
+# - Linux/Mac: Ejecutar "sudo dscacheutil -flushcache" o "sudo systemd-resolve --flush-caches"
+#
+# Recomendación: Combinar con un bloqueador de contenido como uBlock Origin
+# para una protección más completa.
