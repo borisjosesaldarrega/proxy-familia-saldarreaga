@@ -7,7 +7,6 @@ import threading
 import time
 import os
 import socket
-import json
 from pathlib import Path
 from waitress import serve
 from flask import Flask, jsonify, send_file
@@ -29,117 +28,17 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # =========================
-# Cargar configuración DIRECTAMENTE
+# Importar setting.py PRIMERO
 # =========================
-def load_config():
-    """Cargar configuración directamente sin dependencias"""
-    BASE_DIR = Path(__file__).parent
-    
-    DEFAULT_CONFIG = {
-        "proxy_host": "0.0.0.0",
-        "proxy_port": 8080,
-        "web_host": "0.0.0.0",
-        "web_port": 8081,
-        "dashboard_domain": "familiasaldarreaga.dzknight.com",
-        "dashboard_title": "Proxy Familiar - Familia Saldarreaga",
-        "security": {
-            "require_auth": True,
-            "session_timeout": 3600,
-            "max_login_attempts": 3,
-            "lockout_time": 900
-        },
-        "database_url": f"sqlite:///{BASE_DIR}/data/proxy.db",
-        "cache_enabled": True,
-        "cache_size": 1000,
-        "cache_ttl": 3600,
-        "blocking_enabled": True,
-        "youtube_blocking": True,
-        "aggressive_filtering": True,
-        "block_trackers": True,
-        "log_level": "INFO",
-        "cert_dir": str(BASE_DIR / "config" / "certs"),
-        "block_lists": {
-            "easylist": "https://easylist.to/easylist/easylist.txt",
-            "easyprivacy": "https://easylist.to/easylist/easyprivacy.txt",
-            "adguard_base": "https://raw.githubusercontent.com/AdguardTeam/AdguardFilters/master/BaseFilter/sections/base.txt",
-            "adguard_annoyances": "https://raw.githubusercontent.com/AdguardTeam/AdguardFilters/master/AnnoyancesFilter/sections/annoyances.txt",
-            "adguard_tracking": "https://raw.githubusercontent.com/AdguardTeam/AdguardFilters/master/SpywareFilter/sections/tracking_servers.txt",
-            "youtube_ads": "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/youtube.txt",
-            "malware_hosts": "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts"
-        },
-        "whitelist": [
-            "update.microsoft.com",
-            "windowsupdate.microsoft.com",
-            "microsoft.com",
-            "youtube.com",
-            "www.youtube.com",
-            "googlevideo.com",
-            "ytimg.com",
-            "ggpht.com",
-            "gvt1.com",
-            "google.com"
-        ],
-        "blacklist": [
-            "googleads.g.doubleclick.net",
-            "connect.facebook.net",
-            "ads.tiktok.com",
-            "googlesyndication.com",
-            "doubleclick.net",
-            "googleadservices.com"
-        ],
-        "user_agents": [
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-        ]
-    }
-    
-    config_path = BASE_DIR / "config" / "config.json"
-    
-    # Crear carpetas necesarias primero
-    (BASE_DIR / "config").mkdir(parents=True, exist_ok=True)
-    (BASE_DIR / "data").mkdir(parents=True, exist_ok=True)
-    (BASE_DIR / "data" / "logs").mkdir(parents=True, exist_ok=True)
-    (BASE_DIR / "data" / "block_lists").mkdir(parents=True, exist_ok=True)
-    (BASE_DIR / "data" / "cache").mkdir(parents=True, exist_ok=True)
-
-    try:
-        if config_path.exists():
-            with open(config_path, 'r', encoding='utf-8') as f:
-                user_config = json.load(f)
-            
-            # Combinar configuraciones
-            config = DEFAULT_CONFIG.copy()
-            
-            # Merge profundo para diccionarios anidados
-            def deep_update(default, user):
-                for key, value in user.items():
-                    if isinstance(value, dict) and key in default and isinstance(default[key], dict):
-                        deep_update(default[key], value)
-                    else:
-                        default[key] = value
-            
-            deep_update(config, user_config)
-            
-        else:
-            config = DEFAULT_CONFIG.copy()
-            # Guardar configuración por defecto
-            with open(config_path, 'w', encoding='utf-8') as f:
-                json.dump(config, f, indent=4, ensure_ascii=False)
-            logger.info(f"Configuración por defecto creada en {config_path}")
-
-    except (json.JSONDecodeError, OSError) as e:
-        logger.warning(f"Error al cargar configuración: {e}. Usando valores por defecto.")
-        config = DEFAULT_CONFIG.copy()
-
-    # Asegurar que el directorio de certificados existe
-    cert_dir = config.get('cert_dir', '')
-    if cert_dir:
-        Path(cert_dir).mkdir(parents=True, exist_ok=True)
-
-    return config
+try:
+    from config import load_config, save_config, add_to_blacklist, add_to_whitelist
+    logger.info("✅ config.py cargado correctamente")
+except ImportError as e:
+    logger.error(f"❌ Error importando config.py: {e}")
+    sys.exit(1)
 
 # =========================
-# Importar otros módulos DESPUÉS de definir load_config
+# Importar otros módulos
 # =========================
 try:
     from core.proxy_server import AdvancedProxyServer
@@ -180,7 +79,16 @@ def descargar_logs():
 # =========================
 class DomesticProxy:
     def __init__(self):
+        # Cargar configuración desde setting.py
         self.config = load_config()
+        
+        # AJUSTAR PUERTOS PARA RENDER
+        render_port = os.environ.get('PORT')
+        if render_port:
+            logger.info(f"🔄 Ajustando puertos para Render: {render_port}")
+            self.config['proxy_port'] = int(render_port)
+            self.config['web_port'] = 10000  # Puerto diferente para el dashboard
+        
         self.proxy_server = None
         self.web_app = None
 
@@ -246,7 +154,7 @@ class DomesticProxy:
                 """
             
             logger.info("🆕 Iniciando aplicación de emergencia...")
-            serve(emergency_app, host='0.0.0.0', port=8081)
+            serve(emergency_app, host='0.0.0.0', port=10000)
 
     async def stop(self):
         """Detener todos los servicios"""
@@ -284,14 +192,33 @@ def run_proxy_server(proxy_instance):
 if __name__ == "__main__":
     proxy = DomesticProxy()
     
-    # Iniciar proxy server en un hilo separado
-    logger.info("🚀 Iniciando servidor proxy en hilo separado...")
-    proxy_thread = threading.Thread(target=run_proxy_server, args=(proxy,), daemon=True)
-    proxy_thread.start()
+    # Verificar si estamos en Render
+    is_render = os.environ.get('RENDER', False) or os.environ.get('PORT') is not None
     
-    # Esperar un poco a que el proxy se inicialice
-    time.sleep(2)
-    
-    # Iniciar dashboard web en el hilo principal
-    logger.info("🌐 Iniciando dashboard web...")
-    proxy.start_web_dashboard()
+    if is_render:
+        logger.info("🚀 Iniciando en modo Render...")
+        # En Render, ejecutar solo el proxy en el hilo principal
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            loop.run_until_complete(proxy.start_proxy_server())
+            logger.info("✅ Proxy iniciado. Ejecutando loop...")
+            loop.run_forever()
+        except KeyboardInterrupt:
+            logger.info("🛑 Deteniendo proxy...")
+        except Exception as e:
+            logger.error(f"❌ Error: {e}")
+        finally:
+            loop.close()
+    else:
+        # Desarrollo local: ambos servicios
+        logger.info("🚀 Iniciando servidor proxy en hilo separado...")
+        proxy_thread = threading.Thread(target=run_proxy_server, args=(proxy,), daemon=True)
+        proxy_thread.start()
+        
+        # Esperar un poco a que el proxy se inicialice
+        time.sleep(2)
+        
+        # Iniciar dashboard web en el hilo principal
+        logger.info("🌐 Iniciando dashboard web...")
+        proxy.start_web_dashboard()
