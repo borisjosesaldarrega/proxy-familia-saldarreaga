@@ -112,7 +112,7 @@
             color: white;
             padding: 20px 25px;
             display: flex;
-            justify-content: between;
+            justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
             gap: 15px;
@@ -341,6 +341,15 @@
             flex-wrap: wrap;
         }
 
+        .export-info {
+            background: #e6fffa;
+            border: 1px solid #81e6d9;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
         @media (max-width: 768px) {
             .header h1 {
                 font-size: 1.8em;
@@ -414,7 +423,7 @@
                 <span class="stat-label">Total de Registros</span>
             </div>
             <div class="stat-card">
-                <span class="stat-number">{{ (total / limit)|round|int if total > 0 else 0 }}</span>
+                <span class="stat-number">{{ ((total / limit)|round(0, 'ceil')|int) if total > 0 else 0 }}</span>
                 <span class="stat-label">Páginas Totales</span>
             </div>
             <div class="stat-card">
@@ -426,6 +435,12 @@
                 <span class="stat-label">Página Actual</span>
             </div>
         </div>
+
+        {% if logs %}
+        <div class="export-info">
+            <strong>💡 Tip:</strong> Usa los filtros para buscar registros específicos. Los logs se actualizan automáticamente cada 30 segundos.
+        </div>
+        {% endif %}
 
         <div class="logs-container">
             <div class="logs-header">
@@ -464,20 +479,29 @@
                                 <span class="url" title="{{ log[1] }}">{{ log[1] or 'N/A' }}</span>
                             </td>
                             <td>
-                                {% if 'blocked' in log[2]|lower or 'denied' in log[2]|lower %}
-                                <span class="status status-blocked">🚫 Bloqueado</span>
-                                {% elif 'allowed' in log[2]|lower or 'permitted' in log[2]|lower %}
-                                <span class="status status-allowed">✅ Permitido</span>
-                                {% elif 'cached' in log[2]|lower %}
-                                <span class="status status-cached">💾 En caché</span>
+                                {% if log[2] %}
+                                    {% if 'blocked' in log[2]|lower or 'denied' in log[2]|lower %}
+                                    <span class="status status-blocked">🚫 Bloqueado</span>
+                                    {% elif 'allowed' in log[2]|lower or 'permitted' in log[2]|lower %}
+                                    <span class="status status-allowed">✅ Permitido</span>
+                                    {% elif 'cached' in log[2]|lower %}
+                                    <span class="status status-cached">💾 En caché</span>
+                                    {% else %}
+                                    <span class="status">{{ log[2] }}</span>
+                                    {% endif %}
                                 {% else %}
-                                <span class="status">{{ log[2] or 'N/A' }}</span>
+                                    <span class="status">N/A</span>
                                 {% endif %}
                             </td>
                             <td>
                                 <span class="timestamp">
                                     {% if log[3] %}
-                                        {{ log[3].strftime('%Y-%m-%d %H:%M:%S') if log[3] is string else log[3] }}
+                                        {# Manejar tanto strings como objetos datetime #}
+                                        {% if log[3] is string %}
+                                            {{ log[3] }}
+                                        {% else %}
+                                            {{ log[3].strftime('%Y-%m-%d %H:%M:%S') }}
+                                        {% endif %}
                                     {% else %}
                                         N/A
                                     {% endif %}
@@ -492,6 +516,7 @@
                     <div class="no-logs-icon">📭</div>
                     <h3>No hay registros recientes</h3>
                     <p>La actividad del proxy aparecerá aquí cuando se realicen solicitudes.</p>
+                    <p><small>Si acabas de iniciar el proxy, espera a que se realicen algunas solicitudes.</small></p>
                 </div>
                 {% endif %}
             </div>
@@ -504,7 +529,7 @@
                 <span class="page-btn" disabled>← Anterior</span>
                 {% endif %}
                 
-                <span class="page-info">Página {{ page }} de {{ (total / limit)|round(0, 'ceil')|int }}</span>
+                <span class="page-info">Página {{ page }} de {{ ((total / limit)|round(0, 'ceil')|int) }}</span>
                 
                 {% if page * limit < total %}
                 <a href="?page={{ page + 1 }}" class="page-btn">Siguiente →</a>
@@ -522,6 +547,7 @@
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             const statusFilter = document.getElementById('statusFilter').value;
             const rows = document.querySelectorAll('.log-row');
+            let visibleCount = 0;
             
             rows.forEach(row => {
                 const domain = row.querySelector('.domain').textContent.toLowerCase();
@@ -542,7 +568,22 @@
                 }
                 
                 row.style.display = show ? '' : 'none';
+                if (show) visibleCount++;
             });
+            
+            // Actualizar contador en la UI
+            updateVisibleCount(visibleCount);
+        }
+        
+        function updateVisibleCount(count) {
+            let counter = document.getElementById('visibleCount');
+            if (!counter) {
+                counter = document.createElement('div');
+                counter.id = 'visibleCount';
+                counter.style.cssText = 'padding: 10px; background: #e2e8f0; text-align: center; font-weight: 500;';
+                document.querySelector('.logs-table-container').insertBefore(counter, document.querySelector('.logs-table'));
+            }
+            counter.textContent = `Mostrando ${count} de {{ logs|length }} registros`;
         }
         
         function clearFilters() {
@@ -560,10 +601,24 @@
         document.getElementById('statusFilter').addEventListener('change', filterLogs);
         
         // Auto-refresh cada 30 segundos (opcional)
-        setInterval(refreshLogs, 30000);
+        let refreshInterval = setInterval(refreshLogs, 30000);
         
-        // Mensaje de auto-refresh
+        // Mostrar información de auto-refresh
         console.log('🔄 Los logs se actualizarán automáticamente cada 30 segundos');
+        
+        // Permitir detener el auto-refresh
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                clearInterval(refreshInterval);
+                console.log('⏹️ Auto-refresh detenido. Presiona F5 para actualizar manualmente.');
+                alert('Auto-refresh detenido. Presiona F5 para actualizar manualmente.');
+            }
+        });
+        
+        // Inicializar filtros al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            filterLogs();
+        });
     </script>
 </body>
 </html>
