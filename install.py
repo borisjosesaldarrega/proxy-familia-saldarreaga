@@ -38,28 +38,35 @@ def main():
     
     # Lista de dependencias CORREGIDA (con comillas)
     requirements = [
+        # Framework web
         "flask==3.0.0",
-        "waitress==3.0.2",
+        "waitress==3.0.2", 
         "werkzeug==3.0.1",
+        
+        # Async y networking
         "aiohttp==3.9.1",
-        "git+https://github.com/aio-libs/yarl.git",
-        "git+https://github.com/aio-libs/frozenlist.git",
-        "aiosignal==1.3.1",
         "aiosqlite==0.20.0",
-        "asyncio",
-        "aiohappyeyeballs==2.3.0",
+        
+        # SSL
         "pyOpenSSL==23.2.0",
         "cryptography==41.0.7",
-        "pathlib",
+        
+        # Core
         "click==8.1.7",
-        "blinker==1.6.3",
+        "blinker==1.7.0",
         "itsdangerous==2.1.2",
         "jinja2==3.1.2",
         "markupsafe==2.1.3",
-        "typing-extensions==4.8.0",
-        "attrs==23.1.0",
-        "multidict==6.0.4",
-        "idna==3.4"
+        
+        # Dependencias de aiohttp
+        "attrs==23.2.0",
+        "multidict==6.0.5",
+        "yarl==1.9.4", 
+        "idna==3.6",
+        "frozenlist==1.4.1",
+        "aiosignal==1.3.1",
+        "typing-extensions==4.9.0",
+        "charset-normalizer==3.3.2"
     ]
 
     
