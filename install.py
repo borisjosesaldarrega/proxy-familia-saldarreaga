@@ -61,9 +61,7 @@ def main():
         # Dependencias de aiohttp
         "attrs==23.2.0",
         "multidict==6.0.5",
-        "yarl==1.9.4", 
         "idna==3.6",
-        "frozenlist==1.4.1",
         "aiosignal==1.3.1",
         "typing-extensions==4.9.0",
         "charset-normalizer==3.3.2"
