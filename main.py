@@ -35,11 +35,14 @@ def load_config():
     """Cargar configuración directamente sin dependencias"""
     BASE_DIR = Path(__file__).parent
     
+    # OBTENER PUERTO DE RENDER - CLAVE PARA FUNCIONAR
+    RENDER_PORT = os.environ.get('PORT', '8080')
+    
     DEFAULT_CONFIG = {
         "proxy_host": "0.0.0.0",
-        "proxy_port": 8080,
+        "proxy_port": int(RENDER_PORT),  # Usar puerto de Render
         "web_host": "0.0.0.0",
-        "web_port": 8081,
+        "web_port": 10000,  # Puerto diferente para dashboard
         "dashboard_domain": "familiasaldarreaga.dzknight.com",
         "dashboard_title": "Proxy Familiar - Familia Saldarreaga",
         "security": {
@@ -120,6 +123,10 @@ def load_config():
             
             deep_update(config, user_config)
             
+            # FORZAR puerto de Render incluso si hay config existente
+            if os.environ.get('PORT'):
+                config['proxy_port'] = int(os.environ.get('PORT'))
+            
         else:
             config = DEFAULT_CONFIG.copy()
             # Guardar configuración por defecto
@@ -183,6 +190,9 @@ class DomesticProxy:
         self.config = load_config()
         self.proxy_server = None
         self.web_app = None
+        
+        # Log de configuración de puertos
+        logger.info(f"🔧 Configuración de puertos - Proxy: {self.config['proxy_port']}, Web: {self.config['web_port']}")
 
     async def start_proxy_server(self):
         """Iniciar solo el servidor proxy"""
@@ -237,16 +247,16 @@ class DomesticProxy:
                 return f"""
                 <html>
                 <body>
-                    <h1>⚠️ Error en el Dashboard</h1>
-                    <p>El dashboard principal no está disponible.</p>
-                    <p>Error: {str(e)}</p>
+                    <h1>⚠️ Proxy Familiar - Dashboard No Disponible</h1>
+                    <p>El servidor proxy está funcionando en el puerto {self.config['proxy_port']}</p>
+                    <p>El dashboard no está disponible debido a: {str(e)}</p>
                     <p><a href="/logs">Ver logs</a></p>
                 </body>
                 </html>
                 """
             
             logger.info("🆕 Iniciando aplicación de emergencia...")
-            serve(emergency_app, host='0.0.0.0', port=8081)
+            serve(emergency_app, host='0.0.0.0', port=self.config['web_port'])
 
     async def stop(self):
         """Detener todos los servicios"""
@@ -254,44 +264,57 @@ class DomesticProxy:
             await self.proxy_server.stop()
         logger.info("🛑 Proxy detenido correctamente")
 
-    def get_local_ip(self):
-        """Obtener IP local"""
-        try:
-            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            s.connect(("8.8.8.8", 80))
-            ip = s.getsockname()[0]
-            s.close()
-            return ip
-        except:
-            return "localhost"
-
 def run_proxy_server(proxy_instance):
     """Ejecutar el servidor proxy en un loop asyncio separado"""
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     try:
         loop.run_until_complete(proxy_instance.start_proxy_server())
+        # Mantener el loop corriendo
+        loop.run_forever()
     except KeyboardInterrupt:
-        pass
+        logger.info("🛑 Recibida señal de interrupción")
     except Exception as e:
-        logger.error(f"Error en servidor proxy: {e}")
+        logger.error(f"❌ Error en servidor proxy: {e}")
     finally:
         loop.close()
 
 # =========================
-# Lanzamiento principal
+# Lanzamiento principal - OPTIMIZADO PARA RENDER
 # =========================
 if __name__ == "__main__":
-    proxy = DomesticProxy()
+    # Detectar si estamos en Render
+    IS_RENDER = os.environ.get('RENDER', False) or os.environ.get('PORT') is not None
     
-    # Iniciar proxy server en un hilo separado
-    logger.info("🚀 Iniciando servidor proxy en hilo separado...")
-    proxy_thread = threading.Thread(target=run_proxy_server, args=(proxy,), daemon=True)
-    proxy_thread.start()
-    
-    # Esperar un poco a que el proxy se inicialice
-    time.sleep(2)
-    
-    # Iniciar dashboard web en el hilo principal
-    logger.info("🌐 Iniciando dashboard web...")
-    proxy.start_web_dashboard()
+    if IS_RENDER:
+        logger.info("🚀 INICIANDO EN MODO RENDER...")
+        logger.info(f"📍 Puerto asignado por Render: {os.environ.get('PORT')}")
+        
+        # En Render: Solo ejecutar el proxy (servicio principal)
+        proxy = DomesticProxy()
+        
+        # Verificar configuración crítica
+        if proxy.config['proxy_port'] != int(os.environ.get('PORT', '8080')):
+            logger.warning("⚠️  El puerto del proxy no coincide con el de Render, ajustando...")
+            proxy.config['proxy_port'] = int(os.environ.get('PORT', '8080'))
+        
+        # Ejecutar solo el proxy en el hilo principal
+        run_proxy_server(proxy)
+        
+    else:
+        # Desarrollo local: Ambos servicios
+        logger.info("🚀 INICIANDO EN MODO DESARROLLO LOCAL...")
+        
+        proxy = DomesticProxy()
+        
+        # Iniciar proxy server en un hilo separado
+        logger.info("🚀 Iniciando servidor proxy en hilo separado...")
+        proxy_thread = threading.Thread(target=run_proxy_server, args=(proxy,), daemon=True)
+        proxy_thread.start()
+        
+        # Esperar un poco a que el proxy se inicialice
+        time.sleep(3)
+        
+        # Iniciar dashboard web en el hilo principal
+        logger.info("🌐 Iniciando dashboard web...")
+        proxy.start_web_dashboard()
