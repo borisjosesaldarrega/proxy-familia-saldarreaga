@@ -177,7 +177,19 @@ class DomesticProxy:
         """Iniciar solo el servidor proxy"""
         try:
             logger.info("🔄 Iniciando base de datos...")
-            await init_database()
+            try:
+                await init_database()
+            except Exception as db_error:
+                logger.error(f"❌ Error crítico con la base de datos: {db_error}")
+                logger.info("🔄 Intentando recrear la base de datos...")
+                try:
+                    from data.database import recreate_database
+                    await recreate_database()
+                    logger.info("✅ Base de datos recreada correctamente")
+                except Exception as recreate_error:
+                    logger.error(f"❌ No se pudo recrear la base de datos: {recreate_error}")
+                    # Continuar sin base de datos
+                    logger.warning("⚠️  Continuando sin funcionalidad de base de datos")
             
             logger.info("🔄 Iniciando servidor proxy...")
             self.proxy_server = AdvancedProxyServer(self.config)
