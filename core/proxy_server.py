@@ -7,7 +7,6 @@ from typing import Optional, Dict, Any
 import ssl
 import time
 
-from .mitm_handler import MITMHandler
 from .content_filter import ContentFilter
 from .cache_manager import CacheManager
 from data.database import log_request, update_statistics
@@ -17,9 +16,13 @@ logger = logging.getLogger(__name__)
 class AdvancedProxyServer:
     def __init__(self, config: Dict[str, Any]):
         self.config = config
-        self.mitm_handler = MITMHandler(config)
+        
+        # Inicializar componentes esenciales - SIN MITMHandler
         self.content_filter = ContentFilter(config)
         self.cache_manager = CacheManager(config) if config.get('cache_enabled', True) else None
+        
+        # ELIMINADO: self.mitm_handler = MITMHandler(config)
+        
         self.session: Optional[aiohttp.ClientSession] = None
         self.server: Optional[asyncio.Server] = None
         self.stats = {
@@ -71,7 +74,7 @@ class AdvancedProxyServer:
             self.server.close()
             await self.server.wait_closed()
         await self.content_filter.cleanup()
-        logger.info("Proxy server stopped")
+        logger.info("🛑 Proxy server stopped")
     
     async def handle_raw_client(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
         """Manejar conexiones raw para soportar HTTP y HTTPS"""
