@@ -81,7 +81,16 @@ def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not session.get('authenticated'):
+            logger.warning(f"Acceso no autorizado a {request.endpoint}. Redirigiendo a login.")
             return redirect(url_for('login'))
+        
+        # Verificar timeout de sesión
+        login_time = session.get('login_time', 0)
+        if time.time() - login_time > SECURITY_CONFIG['session_timeout']:
+            logger.info(f"Sesión expirada para usuario: {session.get('username')}")
+            session.clear()
+            return redirect(url_for('login'))
+            
         return f(*args, **kwargs)
     return decorated_function
 
@@ -89,7 +98,9 @@ def admin_required(f):
     """Decorator para requerir rol admin"""
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if not session.get('authenticated') or session.get('role') != 'admin':
+        if not session.get('authenticated'):
+            return jsonify({'error': 'No autenticado'}), 401
+        if session.get('role') != 'admin':
             return jsonify({'error': 'Acceso no autorizado'}), 403
         return f(*args, **kwargs)
     return decorated_function
@@ -189,12 +200,20 @@ def create_web_app(proxy_server: Optional[Any] = None, config: Optional[Dict[str
                     template_folder=str(PROJECT_ROOT / "web" / "templates"),
                     static_folder=str(PROJECT_ROOT / "web" / "static"))
         
-        # Configuración de seguridad para Render
+        # CONFIGURACIÓN CRÍTICA CORREGIDA - SESSIONES
         app.secret_key = os.environ.get('FLASK_SECRET_KEY', secrets.token_hex(32))
-        app.config['SESSION_COOKIE_HTTPONLY'] = True
-        app.config['SESSION_COOKIE_SECURE'] = bool(os.environ.get('RENDER'))  # True en Render
-        app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=1)
-        app.config['PREFERRED_URL_SCHEME'] = 'https' if os.environ.get('RENDER') else 'http'
+        
+        # Configuración de cookies y sesiones CORREGIDA
+        app.config.update(
+            SESSION_COOKIE_HTTPONLY=True,
+            SESSION_COOKIE_SECURE=False,  # IMPORTANTE: False para desarrollo y Render sin HTTPS personalizado
+            SESSION_COOKIE_SAMESITE='Lax',
+            PERMANENT_SESSION_LIFETIME=timedelta(hours=1),
+            SESSION_REFRESH_EACH_REQUEST=True,
+            # Configuraciones adicionales para estabilidad
+            USE_X_SENDFILE=False,
+            MAX_CONTENT_LENGTH=16 * 1024 * 1024  # 16MB max upload
+        )
 
         # Si no se pasa config, cargarla
         if config is None:
@@ -254,33 +273,52 @@ def create_web_app(proxy_server: Optional[Any] = None, config: Optional[Dict[str
 
         @app.before_request
         def before_request():
-            """Ejecutar antes de cada request"""
-            # Verificar timeout de sesión
+            """Ejecutar antes de cada request - CORREGIDO"""
+            # Solo verificar timeout para rutas que requieren autenticación
             if session.get('authenticated'):
-                if time.time() - session.get('login_time', 0) > SECURITY_CONFIG['session_timeout']:
+                login_time = session.get('login_time', 0)
+                current_time = time.time()
+                
+                # Verificar timeout de sesión
+                if current_time - login_time > SECURITY_CONFIG['session_timeout']:
+                    username = session.get('username', 'Unknown')
+                    logger.info(f"Sesión expirada para {username}. Limpiando sesión.")
                     session.clear()
-                    return redirect(url_for('login'))
+                    if request.endpoint and not request.endpoint.startswith(('login', 'static', 'health')):
+                        return redirect(url_for('login'))
+                else:
+                    # Refresh session para mantenerla activa
+                    session.modified = True
             
-            # Generar CSRF token para forms
+            # Generar CSRF token para forms (excepto para archivos estáticos)
             if request.endpoint and request.endpoint != 'static':
                 generate_csrf_token()
 
         @app.route('/login', methods=['GET', 'POST'])
         def login():
-            """Página de login"""
-            # Si ya está autenticado, redirigir al dashboard
+            """Página de login - MEJORADO"""
+            # Si ya está autenticado y la sesión es válida, redirigir al dashboard
             if session.get('authenticated'):
-                return redirect(url_for('dashboard'))
+                login_time = session.get('login_time', 0)
+                if time.time() - login_time <= SECURITY_CONFIG['session_timeout']:
+                    logger.info(f"Usuario {session.get('username')} ya autenticado, redirigiendo a dashboard")
+                    return redirect(url_for('dashboard'))
+                else:
+                    # Sesión expirada, limpiar
+                    session.clear()
             
             if request.method == 'POST':
                 username = request.form.get('username', '').strip()
                 password = request.form.get('password', '')
                 csrf_token = request.form.get('csrf_token', '')
                 
+                logger.info(f"Intento de login para usuario: {username}")
+                
                 # Validar CSRF token
                 if not validate_csrf_token(csrf_token):
+                    logger.warning(f"Token CSRF inválido para usuario: {username}")
                     return render_template('login.html', 
-                                        error="Token de seguridad inválido",
+                                        error="Token de seguridad inválido. Recarga la página.",
                                         csrf_token=generate_csrf_token())
                 
                 # Verificar credenciales
@@ -301,18 +339,23 @@ def create_web_app(proxy_server: Optional[Any] = None, config: Optional[Dict[str
                         # Verificar si la cuenta está bloqueada
                         if locked_until and datetime.fromisoformat(locked_until) > datetime.now():
                             remaining_time = (datetime.fromisoformat(locked_until) - datetime.now()).seconds // 60
+                            logger.warning(f"Cuenta bloqueada para usuario: {username}")
                             return render_template('login.html',
                                                 error=f"Cuenta bloqueada. Intente nuevamente en {remaining_time} minutos",
                                                 csrf_token=generate_csrf_token())
                         
                         # Verificar contraseña
                         if verify_password(password, salt, password_hash):
-                            # Login exitoso
+                            # LOGIN EXITOSO - Configurar sesión correctamente
+                            session.clear()  # Limpiar sesión anterior
                             session['authenticated'] = True
                             session['username'] = username
                             session['role'] = role
                             session['login_time'] = time.time()
                             session['session_id'] = secrets.token_urlsafe(32)
+                            
+                            # Forzar escritura de la sesión
+                            session.modified = True
                             
                             # Resetear intentos fallidos
                             cursor.execute(
@@ -320,6 +363,7 @@ def create_web_app(proxy_server: Optional[Any] = None, config: Optional[Dict[str
                                 (username,)
                             )
                             conn.commit()
+                            conn.close()
                             
                             logger.info(f"✅ Login exitoso para usuario: {username}")
                             return redirect(url_for('dashboard'))
@@ -333,36 +377,48 @@ def create_web_app(proxy_server: Optional[Any] = None, config: Optional[Dict[str
                                     (login_attempts, locked_until, username)
                                 )
                                 error_msg = "Demasiados intentos fallidos. Cuenta bloqueada por 15 minutos."
+                                logger.warning(f"Cuenta bloqueada por intentos fallidos: {username}")
                             else:
                                 cursor.execute(
                                     'UPDATE users SET login_attempts = ? WHERE username = ?',
                                     (login_attempts, username)
                                 )
                                 error_msg = f"Credenciales inválidas. Intentos restantes: {SECURITY_CONFIG['max_login_attempts'] - login_attempts}"
+                                logger.warning(f"Intento fallido {login_attempts} para usuario: {username}")
                             
                             conn.commit()
+                            conn.close()
                             return render_template('login.html', error=error_msg, csrf_token=generate_csrf_token())
                     else:
+                        conn.close()
+                        logger.warning(f"Usuario no encontrado: {username}")
                         return render_template('login.html', error="Credenciales inválidas", csrf_token=generate_csrf_token())
                         
                 except Exception as e:
-                    logger.error(f"Error en login: {e}")
-                    return render_template('login.html', error="Error interno del servidor", csrf_token=generate_csrf_token())
-                finally:
+                    logger.error(f"Error en login para {username}: {e}")
                     conn.close()
+                    return render_template('login.html', error="Error interno del servidor", csrf_token=generate_csrf_token())
             
-            return render_template('login.html', csrf_token=generate_csrf_token())
+            # GET request - mostrar formulario de login
+            csrf_token = generate_csrf_token()
+            return render_template('login.html', csrf_token=csrf_token)
 
         @app.route('/logout')
         def logout():
-            """Cerrar sesión"""
+            """Cerrar sesión - MEJORADO"""
+            username = session.get('username', 'Unknown')
             session.clear()
+            logger.info(f"Logout exitoso para usuario: {username}")
             return redirect(url_for('login'))
 
         @app.route('/')
         @login_required
         def dashboard():
             """Panel principal"""
+            # Verificación adicional de autenticación
+            if not session.get('authenticated'):
+                return redirect(url_for('login'))
+                
             stats = {}
             try:
                 if proxy_server and hasattr(proxy_server, "get_stats"):
@@ -747,8 +803,27 @@ def create_web_app(proxy_server: Optional[Any] = None, config: Optional[Dict[str
                 'role': session.get('role'),
                 'login_time': session.get('login_time'),
                 'session_expires': session.get('login_time', 0) + SECURITY_CONFIG['session_timeout'],
-                'csrf_token': generate_csrf_token()
+                'csrf_token': generate_csrf_token(),
+                'authenticated': True
             })
+
+        @app.route('/api/check_session')
+        def check_session():
+            """Verificar si hay una sesión activa - público"""
+            if session.get('authenticated'):
+                login_time = session.get('login_time', 0)
+                if time.time() - login_time <= SECURITY_CONFIG['session_timeout']:
+                    return jsonify({
+                        'authenticated': True,
+                        'username': session.get('username'),
+                        'role': session.get('role'),
+                        'login_time': session.get('login_time')
+                    })
+                else:
+                    # Sesión expirada
+                    session.clear()
+                    
+            return jsonify({'authenticated': False})
 
         @app.route('/logs')
         @login_required
