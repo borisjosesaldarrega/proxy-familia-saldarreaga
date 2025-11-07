@@ -258,21 +258,46 @@ def run_proxy_server(proxy_instance):
         loop.close()
 
 # =========================
-# Lanzamiento principal - OPTIMIZADO PARA RENDER
+# Lanzamiento principal - CORREGIDO PARA RENDER
 # =========================
 if __name__ == "__main__":
     # Detectar si estamos en Render
     IS_RENDER = os.environ.get('RENDER', False) or os.environ.get('PORT') is not None
     
     if IS_RENDER:
-        logger.info("🚀 INICIANDO EN MODO RENDER...")
+        logger.info("🚀 INICIANDO EN MODO RENDER CON PROXY...")
         logger.info(f"📍 Puerto asignado por Render: {os.environ.get('PORT')}")
         
-        # En Render: Solo ejecutar el DASHBOARD como servicio principal
         proxy = DomesticProxy()
         
-        # Solo iniciar el dashboard web en el hilo principal
-        logger.info("🌐 Iniciando solo dashboard web (servicio principal en Render)...")
+        # EN RENDER: Ejecutar AMBOS servicios
+        logger.info("🚀 Iniciando ambos servicios en Render...")
+        
+        # Iniciar proxy server en un hilo separado
+        logger.info("🔄 Iniciando servidor proxy en hilo separado...")
+        proxy_thread = threading.Thread(target=run_proxy_server, args=(proxy,), daemon=True)
+        proxy_thread.start()
+        
+        # Esperar un poco a que el proxy se inicialice
+        logger.info("⏳ Esperando inicialización del proxy...")
+        time.sleep(5)
+        
+        # Verificar si el proxy está funcionando
+        try:
+            # Intentar conectar al puerto del proxy localmente
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            result = sock.connect_ex(('127.0.0.1', proxy.config['proxy_port']))
+            sock.close()
+            
+            if result == 0:
+                logger.info("✅ Proxy server funcionando correctamente")
+            else:
+                logger.warning("⚠️  Proxy server no responde, pero continuando...")
+        except:
+            logger.warning("⚠️  No se pudo verificar el proxy, continuando...")
+        
+        # Iniciar dashboard web en el hilo principal
+        logger.info("🌐 Iniciando dashboard web...")
         proxy.start_web_dashboard()
         
     else:
