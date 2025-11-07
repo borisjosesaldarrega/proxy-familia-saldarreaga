@@ -25,10 +25,7 @@ class FilterStats:
 class ContentFilter:
     """
     Sistema avanzado de filtrado de contenido con optimizaciones de rendimiento.
-    - Caché de decisiones de bloqueo
-    - Parsing más eficiente de listas
-    - Detección mejorada de anuncios
-    - Estadísticas en tiempo real
+    Especializado en bloquear anuncios de YouTube sin afectar la funcionalidad.
     """
 
     def __init__(self, config: Dict):
@@ -46,7 +43,7 @@ class ContentFilter:
         self.stats = FilterStats()
         self._stats_lock = asyncio.Lock()
         
-        # Patrones optimizados para YouTube
+        # Patrones optimizados para YouTube ADS (no funcionalidad)
         self.youtube_ad_patterns = self._init_youtube_patterns()
         
         # Executor para operaciones bloqueantes
@@ -56,58 +53,482 @@ class ContentFilter:
         self._initialized = False
         self._load_task: Optional[asyncio.Task] = None
         
+        # DOMINIOS ESENCIALES DE YOUTUBE QUE NUNCA DEBEN BLOQUEARSE
+        self.youtube_essential_domains = {
+            'youtube.com', 'www.youtube.com', 'm.youtube.com',
+            'youtu.be', 'googlevideo.com', 'ytimg.com', 
+            'ggpht.com', 'googleapis.com', 'google.com',
+            'gstatic.com', 'fonts.gstatic.com', 'ajax.googleapis.com'
+        }
+        
         logger.info("🚀 ContentFilter inicializado")
 
     def _init_youtube_patterns(self) -> Dict[str, Pattern]:
         """Inicializar patrones optimizados para anuncios de YouTube"""
         return {
-            # URLs de anuncios (compilados una sola vez)
-            'ad_urls': re.compile(
-                r'(?:'
-                r'pagead|adlog|log_event|ptracking|get_midroll|'
-                r'videoplayback.*[&?](?:oad|ovad|adformat)=|'
-                r'youtube\.com/api/stats/|'
-                r'google\.com/pagead/|'
-                r'doubleclick\.net/'
-                r')', 
-                re.IGNORECASE
-            ),
-            
-            # Headers de anuncios
-            'ad_headers': re.compile(
-                r'(?:ads|advert|doubleclick|googleads|googlesyndication)',
-                re.IGNORECASE
-            ),
-            
-            # Scripts de anuncios en HTML
-            'ad_scripts': re.compile(
-                r'(?:adsystem|googleadservices|doubleclick\.net|googlesyndication)',
-                re.IGNORECASE
-            ),
-            
-            # Elementos DOM de anuncios
-            'ad_elements': re.compile(
-                r'(?:ad-container|ad-unit|banner-ad|video-ads|ytp-ad-|ad-div|ad-overlay)',
-                re.IGNORECASE
-            ),
-            
-            # Parámetros de URL específicos de ads
-            'ad_params': re.compile(
-                r'[?&](?:gclid|fbclid|utm_campaign|utm_source|utm_medium|utm_term)=',
-                re.IGNORECASE
-            ),
-            
-            # Patrones de video ads específicos
-            'video_ads': re.compile(
-                r'(?:'
-                r'/videoplayback.*[&?]ctier=|'
-                r'/videoplayback.*[&?]oad=|'
-                r'/videoplayback.*[&?]ovad=|'
-                r'/videoplayback.*[&?]of=|'
-                r'/get_midroll_|'
-                r'/ptracking\?'
-                r')',
-                re.IGNORECASE
+            # URLs específicas de anuncios de YouTube
+            # URLs específicas de anuncios de YouTube - VERSIÓN EXPANDIDA
+                'ad_urls': re.compile(
+                    r'(?:'
+                    # Dominios de Google Ads
+                    r'pagead2\.googlesyndication\.com|'
+                    r'ads\.youtube\.com|'
+                    r'doubleclick\.net|'
+                    r'googleads\.g\.doubleclick\.net|'
+                    r'partnerad\.g\.doubleclick\.net|'
+                    r'ad\.doubleclick\.net|'
+                    r'fundingchoicesmessages\.google\.com|'
+                    r'googleadservices\.com|'
+                    r'tpc\.googlesyndication\.com|'
+                    r'securepubads\.g\.doubleclick\.net|'
+                    r'adservice\.google\.com|'
+                    r'adservice\.google\.[a-z]{2,3}|'
+                    r'googlesyndication\.com|'
+                    r'google-analytics\.com|'
+                    
+                    # Más dominios de anuncios comunes
+                    r'2mdn\.net|'
+                    r'gstatic\.com/cv/js/sender/|'
+                    r'www-google-analytics\.l\.google\.com|'
+                    r'pagead-googlehosted\.l\.google\.com|'
+                    r'partnerad\.l\.google\.com|'
+                    r'afs\.googleadservices\.com|'
+                    r'www\.googletagservices\.com|'
+                    r'www\.google\.com/pagead/|'
+                    r'google\.com/pagead/|'
+                    r's0\.2mdn\.net|'
+                    r'static\.doubleclick\.net|'
+                    
+                    # Redes publicitarias de terceros
+                    r'ad\.nend\.net|'
+                    r'adsystem\.com|'
+                    r'serving-sys\.com|'
+                    r'casalemedia\.com|'
+                    r'adtech\.de|'
+                    r'advertising\.com|'
+                    r'rubiconproject\.com|'
+                    r'appnexus\.com|'
+                    r'openx\.net|'
+                    r'pubmatic\.com|'
+                    r'criteo\.com|'
+                    r'moatads\.com|'
+                    r'scorecardresearch\.com|'
+                    r'quantserve\.com|'
+                    r'outbrain\.com|'
+                    r'taboola\.com|'
+                    
+                    # Trackers y analytics
+                    r'googletagmanager\.com|'
+                    r'googleoptimize\.com|'
+                    r'hotjar\.com|'
+                    r'crazyegg\.com|'
+                    r'clicktale\.net|'
+                    
+                    # CDNs de anuncios
+                    r'cdn\.doubleverify\.com|'
+                    r'cdn\.moatads\.com|'
+                    r'ads\.rubiconproject\.com|'
+                    
+                    # Parámetros de URL
+                    r'[\?&]adformat=|\bads\b|'
+                    r'[\?&]ad_type=|\bad_type\b|'
+                    r'[\?&]ad_break=|\bad_break\b|'
+                    r'[\?&]ad_session=|\bad_session\b|'
+                    r'[\?&]ad_channel=|\bad_channel\b|'
+                    r'[\?&]ad_position=|\bad_position\b|'
+                    r'[\?&]ad_network=|\bad_network\b|'
+                    
+                    # YouTube específico
+                    r'videoplayback\?.*[&?]ctier=|'
+                    r'videoplayback\?.*[&?]oad=|'
+                    r'videoplayback\?.*[&?]ovad=|'
+                    r'videoplayback\?.*[&?]of=|'
+                    r'youtube\.com/api/stats/ads|'
+                    r'youtube\.com/pagead/|'
+                    r'youtube\.com/ptracking|'
+                    r'youtube\.com/get_midroll|'
+                    
+                    # Palabras clave en URL
+                    r'/ads/|'
+                    r'/ad/|'
+                    r'/banner/|'
+                    r'/promo/|'
+                    r'/sponsor/|'
+                    r'/tracking/|'
+                    r'/analytics/|'
+                    r'/beacon/|'
+                    r'/pixel/|'
+                    r'/impression/|'
+                    r'/click/|'
+                    r'/delivery/|'
+                    r'/log_event|'
+                    r'/log_interaction|'
+                    
+                    # Subdominios comunes de ads
+                    r'ads\.[a-zA-Z0-9-]+\.[a-zA-Z]{2,}|'
+                    r'ad\.[a-zA-Z0-9-]+\.[a-zA-Z]{2,}|'
+                    r'adserver\.[a-zA-Z0-9-]+\.[a-zA-Z]{2,}|'
+                    r'advert\.[a-zA-Z0-9-]+\.[a-zA-Z]{2,}|'
+                    r'banner\.[a-zA-Z0-9-]+\.[a-zA-Z]{2,}|'
+                    r'tracker\.[a-zA-Z0-9-]+\.[a-zA-Z]{2,}|'
+                    r'tracking\.[a-zA-Z0-9-]+\.[a-zA-Z]{2,}|'
+                    r'analytics\.[a-zA-Z0-9-]+\.[a-zA-Z]{2,}'
+                    r')', 
+                    re.IGNORECASE
+                ),
+                
+                # Headers de anuncios - EXPANDIDO
+                'ad_headers': re.compile(
+                    r'(?:'
+                    r'ads|advert|doubleclick|googleads|googlesyndication|'
+                    r'ad-server|adserver|ad-network|adnetwork|'
+                    r'ad-content|adcontent|ad-wrapper|adwrapper|'
+                    r'ad-frame|adframe|ad-unit|adunit|'
+                    r'ad-tag|adtag|ad-slot|adslot|'
+                    r'ad-campaign|adcampaign|ad-placement|adplacement|'
+                    r'ad-request|adrequest|ad-response|adresponse|'
+                    r'ad-impression|adimpression|ad-click|adclick|'
+                    r'ad-view|adview|ad-load|adload|'
+                    r'ad-beacon|adbeacon|ad-pixel|adpixel|'
+                    r'ad-tracking|adtracking|ad-analytics|adanalytics|'
+                    r'ad-delivery|addelivery|ad-serving|adserving|'
+                    r'ad-bid|adbid|ad-auction|adauction|'
+                    r'ad-exchange|adexchange|ad-marketplace|admarketplace|'
+                    r'ad-mediation|admediation|ad-optimization|adoptimization|'
+                    r'ad-targeting|adtargeting|ad-segment|adsegment|'
+                    r'ad-profile|adprofile|ad-audience|adaudience|'
+                    r'ad-revenue|adrevenue|ad-monetization|admonetization|'
+                    r'ad-verification|adverification|ad-measurement|admeasurement|'
+                    r'youtube-ad|youtubead|yt-ad|ytad|'
+                    r'video-ad|videoad|pre-roll|preroll|'
+                    r'mid-roll|midroll|post-roll|postroll|'
+                    r'banner-ad|bannerad|popup-ad|popupad|'
+                    r'interstitial-ad|interstitialad|native-ad|nativead|'
+                    r'sponsored-content|sponsoredcontent|promoted-content|promotedcontent'
+                    r')',
+                    re.IGNORECASE
+                ),
+                
+                # Scripts de anuncios en HTML - EXPANDIDO
+                'ad_scripts': re.compile(
+                    r'(?:'
+                    r'adsystem|googleadservices|doubleclick\.net|googlesyndication|'
+                    r'adserver|adserver\.|adserver-|'
+                    r'adtech|adtech\.|adtech-|'
+                    r'appnexus|appnexus\.|appnexus-|'
+                    r'rubiconproject|rubiconproject\.|rubiconproject-|'
+                    r'openx|openx\.|openx-|'
+                    r'pubmatic|pubmatic\.|pubmatic-|'
+                    r'criteo|criteo\.|criteo-|'
+                    r'moatads|moatads\.|moatads-|'
+                    r'scorecardresearch|scorecardresearch\.|scorecardresearch-|'
+                    r'quantserve|quantserve\.|quantserve-|'
+                    r'outbrain|outbrain\.|outbrain-|'
+                    r'taboola|taboola\.|taboola-|'
+                    r'googletagmanager|googletagmanager\.|googletagmanager-|'
+                    r'googleoptimize|googleoptimize\.|googleoptimize-|'
+                    r'hotjar|hotjar\.|hotjar-|'
+                    r'crazyegg|crazyegg\.|crazyegg-|'
+                    r'clicktale|clicktale\.|clicktale-|'
+                    r'ad\.js|ads\.js|adscript|ad-script|'
+                    r'banner\.js|banners\.js|bannerscript|banner-script|'
+                    r'tracker\.js|trackers\.js|trackerscript|tracker-script|'
+                    r'analytics\.js|analyticsscript|analytics-script|'
+                    r'beacon\.js|beaconscript|beacon-script|'
+                    r'pixel\.js|pixelscript|pixel-script|'
+                    r'youtubeads|youtube-ads|ytads|yt-ads|'
+                    r'videoads|video-ads|videoads|video-ads'
+                    r')',
+                    re.IGNORECASE
+                ),
+                
+                # Elementos DOM de anuncios de YouTube - EXPANDIDO
+                'ad_elements': re.compile(
+                    r'(?:'
+                    # Clases específicas de YouTube
+                    r'ytp-ad-|'
+                    r'ytd-ad-|'
+                    r'ytd-promoted-|'
+                    r'ytd-compact-promoted-|'
+                    r'ytd-display-ad-|'
+                    r'ytd-in-feed-ad-|'
+                    r'ytd-action-companion-ad-|'
+                    r'ytd-banner-promo-|'
+                    
+                    # Clases generales de anuncios
+                    r'ad-container|'
+                    r'ad-div|'
+                    r'ad-overlay|'
+                    r'ad-wrapper|'
+                    r'ad-frame|'
+                    r'ad-unit|'
+                    r'ad-slot|'
+                    r'ad-placement|'
+                    r'ad-content|'
+                    r'ad-body|'
+                    r'ad-header|'
+                    r'ad-footer|'
+                    r'ad-sidebar|'
+                    r'ad-top|'
+                    r'ad-bottom|'
+                    r'ad-left|'
+                    r'ad-right|'
+                    r'ad-center|'
+                    r'ad-middle|'
+                    r'ad-popup|'
+                    r'ad-modal|'
+                    r'ad-lightbox|'
+                    r'ad-sticky|'
+                    r'ad-fixed|'
+                    r'ad-floating|'
+                    r'ad-expandable|'
+                    r'ad-collapsible|'
+                    r'ad-rotating|'
+                    r'ad-sliding|'
+                    r'ad-animated|'
+                    r'ad-interactive|'
+                    
+                    # IDs de anuncios
+                    r'player-ads|'
+                    r'video-ads|'
+                    r'banner-ad|'
+                    r'sidebar-ad|'
+                    r'header-ad|'
+                    r'footer-ad|'
+                    r'popup-ad|'
+                    r'overlay-ad|'
+                    r'interstitial-ad|'
+                    r'native-ad|'
+                    r'sponsored-ad|'
+                    r'promoted-ad|'
+                    
+                    # Atributos de datos
+                    r'data-ad-|'
+                    r'data-ads-|'
+                    r'data-adunit|'
+                    r'data-adslot|'
+                    r'data-ad-client|'
+                    r'data-ad-format|'
+                    r'data-ad-type|'
+                    r'data-ad-network|'
+                    r'data-ad-position|'
+                    r'data-ad-targeting|'
+                    
+                    # YouTube específico
+                    r'companion-ad|'
+                    r'invideo-ad|'
+                    r'instream-ad|'
+                    r'outstream-ad|'
+                    r'midroll-ad|'
+                    r'preroll-ad|'
+                    r'postroll-ad|'
+                    r'brand-ad|'
+                    r'product-ad|'
+                    r'shopping-ad'
+                    r')',
+                    re.IGNORECASE
+                ),
+                
+                # Parámetros de URL específicos de ads - EXPANDIDO
+                'ad_params': re.compile(
+                    r'[?&](?:'
+                    # Parámetros de Google Ads
+                    r'gclid=|'
+                    r'fbclid=|'
+                    r'utm_campaign=|'
+                    r'utm_source=|'
+                    r'utm_medium=|'
+                    r'utm_term=|'
+                    r'utm_content=|'
+                    r'utm_id=|'
+                    r'ad_type=|'
+                    r'adformat=|'
+                    r'ad_channel=|'
+                    r'ad_position=|'
+                    r'ad_network=|'
+                    r'ad_target=|'
+                    r'ad_keyword=|'
+                    r'ad_group=|'
+                    r'ad_campaign=|'
+                    r'ad_creative=|'
+                    r'ad_placement=|'
+                    r'ad_slot=|'
+                    r'ad_unit=|'
+                    r'ad_break=|'
+                    r'ad_session=|'
+                    r'ad_impression=|'
+                    r'ad_click=|'
+                    r'ad_view=|'
+                    r'ad_load=|'
+                    r'ad_bid=|'
+                    r'ad_auction=|'
+                    r'ad_exchange=|'
+                    r'ad_mediation=|'
+                    r'ad_optimization=|'
+                    r'ad_targeting=|'
+                    r'ad_segment=|'
+                    r'ad_profile=|'
+                    r'ad_audience=|'
+                    r'ad_revenue=|'
+                    r'ad_monetization=|'
+                    r'ad_verification=|'
+                    r'ad_measurement=|'
+                    
+                    # YouTube específico
+                    r'ctier=|'
+                    r'oad=|'
+                    r'ovad=|'
+                    r'of=|'
+                    r'adformat=|'
+                    r'instream=|'
+                    r'companion=|'
+                    r'midroll=|'
+                    r'preroll=|'
+                    r'postroll=|'
+                    
+                    # Parámetros de tracking
+                    r'tracking_id=|'
+                    r'tracking_code=|'
+                    r'tracking_key=|'
+                    r'tracking_source=|'
+                    r'tracking_medium=|'
+                    r'tracking_campaign=|'
+                    r'tracking_term=|'
+                    r'tracking_content=|'
+                    r'clickid=|'
+                    r'affiliate_id=|'
+                    r'partner_id=|'
+                    r'ref_id=|'
+                    r'sub_id=|'
+                    r'subid=|'
+                    
+                    # Analytics
+                    r'analytics_id=|'
+                    r'analytics_key=|'
+                    r'analytics_source=|'
+                    r'beacon_id=|'
+                    r'pixel_id=|'
+                    r'impression_id=|'
+                    r'view_id=|'
+                    r'session_id=|'
+                    r'user_id=|'
+                    r'visitor_id=|'
+                    r'customer_id=|'
+                    r'client_id=|'
+                    r'campaign_id=|'
+                    r'creative_id=|'
+                    r'placement_id=|'
+                    r'site_id=|'
+                    r'zone_id=|'
+                    r'banner_id=|'
+                    r'ad_id=|'
+                    r'adid='
+                    r')',
+                    re.IGNORECASE
+                ),
+                
+                # Patrones de video ads específicos de YouTube - EXPANDIDO
+                'video_ads': re.compile(
+                    r'(?:'
+                    # YouTube video ads
+                    r'/videoplayback\?.*[&?]ctier=|'
+                    r'/videoplayback\?.*[&?]oad=|'
+                    r'/videoplayback\?.*[&?]ovad=|'
+                    r'/videoplayback\?.*[&?]of=|'
+                    r'/get_midroll_|'
+                    r'/get_preroll_|'
+                    r'/get_postroll_|'
+                    r'/ptracking\?|'
+                    r'/pagead/|'
+                    r'/log_event\?|'
+                    r'/log_interaction\?|'
+                    r'/ad_event\?|'
+                    r'/ad_interaction\?|'
+                    r'/ad_impression\?|'
+                    r'/ad_click\?|'
+                    r'/ad_view\?|'
+                    r'/ad_load\?|'
+                    r'/ad_break\?|'
+                    r'/ad_session\?|'
+                    r'/ad_request\?|'
+                    r'/ad_response\?|'
+                    r'/ad_delivery\?|'
+                    r'/ad_serving\?|'
+                    r'/ad_targeting\?|'
+                    r'/ad_placement\?|'
+                    r'/ad_unit\?|'
+                    r'/ad_slot\?|'
+                    r'/ad_campaign\?|'
+                    r'/ad_creative\?|'
+                    r'/ad_network\?|'
+                    r'/ad_exchange\?|'
+                    r'/ad_mediation\?|'
+                    r'/ad_auction\?|'
+                    r'/ad_bid\?|'
+                    r'/ad_revenue\?|'
+                    r'/ad_monetization\?|'
+                    r'/ad_verification\?|'
+                    r'/ad_measurement\?|'
+                    
+                    # Paths comunes de ads
+                    r'/ads/|'
+                    r'/ad/|'
+                    r'/banner/|'
+                    r'/promo/|'
+                    r'/sponsor/|'
+                    r'/tracking/|'
+                    r'/analytics/|'
+                    r'/beacon/|'
+                    r'/pixel/|'
+                    r'/impression/|'
+                    r'/click/|'
+                    r'/delivery/|'
+                    r'/serving/|'
+                    r'/targeting/|'
+                    r'/placement/|'
+                    r'/unit/|'
+                    r'/slot/|'
+                    r'/campaign/|'
+                    r'/creative/|'
+                    r'/network/|'
+                    r'/exchange/|'
+                    r'/mediation/|'
+                    r'/auction/|'
+                    r'/bid/|'
+                    r'/revenue/|'
+                    r'/monetization/|'
+                    r'/verification/|'
+                    r'/measurement/|'
+                    
+                    # YouTube API endpoints de ads
+                    r'youtube\.com/api/stats/ads|'
+                    r'youtube\.com/api/stats/qoe|'
+                    r'youtube\.com/api/stats/playback|'
+                    r'youtube\.com/api/stats/watchtime|'
+                    r'youtube\.com/api/stats/atr|'
+                    r'youtube\.com/api/stats/|'
+                    
+                    # Otros patrones
+                    r'/vast|'
+                    r'/vmap|'
+                    r'/vpaid|'
+                    r'/adstream|'
+                    r'/adflow|'
+                    r'/adpath|'
+                    r'/adroute|'
+                    r'/adtrack|'
+                    r'/advertise|'
+                    r'/advertising|'
+                    r'/monetize|'
+                    r'/monetization|'
+                    r'/sponsorship|'
+                    r'/promotion|'
+                    r'/affiliate|'
+                    r'/partner|'
+                    r'/revshare|'
+                    r'/revenue'
+                    r')',
+                    re.IGNORECASE
             )
         }
 
@@ -126,9 +547,9 @@ class ContentFilter:
         block_list_dir = Path("data/block_lists")
         block_list_dir.mkdir(parents=True, exist_ok=True)
         
-        # Listas optimizadas para mejor rendimiento
+        # Listas optimizadas para anuncios (no funcionalidad)
         block_lists = [
-            # Lista específica de YouTube
+            # Lista específica de anuncios de YouTube
             ("https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/youtube.txt", "youtube_ads.txt"),
             # Lista general de anuncios
             ("https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts", "steven_black.txt"),
@@ -315,15 +736,13 @@ class ContentFilter:
 
     def _is_valid_domain(self, domain: str) -> bool:
         """Verificar si un dominio es válido para bloqueo"""
-        # No bloquear dominios esenciales
-        essential_domains = {
-            'youtube.com', 'www.youtube.com', 'youtu.be', 
-            'ggpht.com', 'ytimg.com', 'google.com', 'gstatic.com'
-        }
+        # NUNCA bloquear dominios esenciales de YouTube
+        if domain in self.youtube_essential_domains:
+            return False
         
         # Verificar si es subdominio de esencial
-        for essential in essential_domains:
-            if domain == essential or domain.endswith('.' + essential):
+        for essential in self.youtube_essential_domains:
+            if domain.endswith('.' + essential):
                 return False
         
         return True
@@ -348,13 +767,18 @@ class ContentFilter:
             
             # Mapeo de selectores comunes a regex precompilados
             common_selectors = {
-                # YouTube ads
+                # YouTube ads específicos
                 '.ytp-ad-module': r'<[^>]*class=[^>]*ytp-ad-module[^>]*>',
                 '.ytp-ad-overlay-container': r'<[^>]*class=[^>]*ytp-ad-overlay-container[^>]*>',
                 '.ytp-ad-player-overlay': r'<[^>]*class=[^>]*ytp-ad-player-overlay[^>]*>',
+                '.ytp-ad-progress': r'<[^>]*class=[^>]*ytp-ad-progress[^>]*>',
+                '.ytp-ad-skip-button': r'<[^>]*class=[^>]*ytp-ad-skip-button[^>]*>',
+                '.ytp-ad-text': r'<[^>]*class=[^>]*ytp-ad-text[^>]*>',
                 '.video-ads': r'<[^>]*class=[^>]*video-ads[^>]*>',
                 '#player-ads': r'<[^>]*id=[^>]*player-ads[^>]*>',
                 '.ad-container': r'<[^>]*class=[^>]*ad-container[^>]*>',
+                '.ad-div': r'<[^>]*class=[^>]*ad-div[^>]*>',
+                '.ad-overlay': r'<[^>]*class=[^>]*ad-overlay[^>]*>',
                 
                 # Selectores genéricos
                 '.ad': r'<[^>]*class=[^>]*\bad\b[^>]*>',
@@ -468,7 +892,7 @@ class ContentFilter:
                 logger.debug(f"🚫 Bloqueado por patrón: {domain}")
                 return True
 
-        # 5. Filtrado específico para YouTube
+        # 5. Filtrado específico para YouTube ADS
         if self.config.get('youtube_blocking', True) and self._is_youtube_related(domain):
             if self._is_youtube_ad(domain, url, headers):
                 async with self._stats_lock:
@@ -488,27 +912,26 @@ class ContentFilter:
             if domain == allowed_domain or domain.endswith('.' + allowed_domain):
                 return True
         
-        # YouTube principal siempre permitido
-        return domain in ('youtube.com', 'www.youtube.com')
+        # YouTube esencial siempre permitido
+        return domain in self.youtube_essential_domains
 
     def _is_youtube_related(self, domain: str) -> bool:
         """Verificar si el dominio está relacionado con YouTube"""
-        youtube_domains = {
-            'youtube.com', 'youtu.be', 'googlevideo.com', 
-            'ytimg.com', 'ggpht.com', 'googleapis.com',
-            'google.com', 'gstatic.com'
-        }
-        return any(domain == yd or domain.endswith('.' + yd) for yd in youtube_domains)
+        return any(domain == yd or domain.endswith('.' + yd) for yd in self.youtube_essential_domains)
 
     def _is_youtube_ad(self, domain: str, url: str, headers: dict) -> bool:
         """Detección optimizada de anuncios de YouTube"""
-        # Verificar patrones precompilados
+        # NUNCA bloquear dominios esenciales de YouTube
+        if domain in self.youtube_essential_domains:
+            return False
+            
+        # Verificar patrones precompilados de ADS
         if (self.youtube_ad_patterns['ad_urls'].search(url) or
             self.youtube_ad_patterns['video_ads'].search(url) or
             self.youtube_ad_patterns['ad_params'].search(url)):
             return True
 
-        # Verificar headers
+        # Verificar headers de anuncios
         user_agent = headers.get('User-Agent', '')
         referer = headers.get('Referer', '')
         
@@ -519,7 +942,7 @@ class ContentFilter:
         return False
 
     async def filter_html_content(self, content: bytes, domain: str) -> bytes:
-        """Filtrar contenido HTML de forma eficiente"""
+        """Filtrar contenido HTML de forma eficiente - ESPECIALMENTE YOUTUBE"""
         if not self._is_youtube_related(domain):
             return content
 
@@ -539,23 +962,38 @@ class ContentFilter:
             return content
 
     def _filter_html_sync(self, content: bytes, domain: str) -> bytes:
-        """Filtrar contenido HTML (ejecutado en thread pool)"""
+        """Filtrar contenido HTML (ejecutado en thread pool) - ESPECIAL YOUTUBE"""
         try:
             html = content.decode('utf-8', errors='ignore')
             
-            # Patrones de reemplazo para YouTube ads
+            # Patrones de reemplazo específicos para YouTube ADS
             replacements = [
-                # Scripts de anuncios
-                (r'<script[^>]*(adsystem|googleadservices|doubleclick|googlesyndication)[^>]*>.*?</script>', ''),
+                # Scripts de anuncios de YouTube
+                (r'<script[^>]*googlesyndication\.com[^>]*>.*?</script>', ''),
+                (r'<script[^>]*doubleclick\.net[^>]*>.*?</script>', ''),
+                (r'<script[^>]*googleadservices\.com[^>]*>.*?</script>', ''),
+                (r'<script[^>]*adsystem\.com[^>]*>.*?</script>', ''),
+                
                 # Iframes de anuncios
-                (r'<iframe[^>]*(ad|banner|ads)[^>]*>.*?</iframe>', ''),
-                # Elementos DOM de anuncios
-                (r'<div[^>]*(ad-container|ad-unit|video-ads|ytp-ad-)[^>]*>.*?</div>', ''),
+                (r'<iframe[^>]*doubleclick\.net[^>]*>.*?</iframe>', ''),
+                (r'<iframe[^>]*googleads\.g\.doubleclick\.net[^>]*>.*?</iframe>', ''),
+                
+                # Elementos DOM de anuncios de YouTube
+                (r'<div[^>]*class="ytp-ad-[^"]*"[^>]*>.*?</div>', ''),
+                (r'<div[^>]*id="player-ads"[^>]*>.*?</div>', ''),
+                (r'<div[^>]*class="video-ads"[^>]*>.*?</div>', ''),
+                (r'<div[^>]*class="ad-container"[^>]*>.*?</div>', ''),
+                (r'<div[^>]*class="ad-overlay"[^>]*>.*?</div>', ''),
+                
+                # JSON de anuncios en YouTube
+                (r'"adSlots":\s*\[[^\]]*\]', '"adSlots":[]'),
+                (r'"playerAds":\s*\[[^\]]*\]', '"playerAds":[]'),
+                (r'"adPlacements":\s*\[[^\]]*\]', '"adPlacements":[]'),
+                (r'"adBreakUrl":\s*"[^"]*"', '"adBreakUrl":""'),
+                
                 # Overlays de anuncios
-                (r'<div[^>]*ad-overlay[^>]*>.*?</div>', ''),
-                # Player ads en JSON
-                (r'"playerAds":\s*\[[^\]]*\],?', '"playerAds":[],'),
-                (r'"adPlacements":\s*\[[^\]]*\],?', '"adPlacements":[],'),
+                (r'<div[^>]*id="ad-container"[^>]*>.*?</div>', ''),
+                (r'<div[^>]*class="ytp-ad-message-container"[^>]*>.*?</div>', ''),
             ]
             
             for pattern, replacement in replacements:
@@ -576,6 +1014,11 @@ class ContentFilter:
 
     def add_to_blacklist(self, domain: str):
         """Añadir dominio a la lista negra"""
+        # No permitir bloquear dominios esenciales de YouTube
+        if domain in self.youtube_essential_domains:
+            logger.warning(f"⚠️  No se puede bloquear dominio esencial: {domain}")
+            return
+            
         self.blacklist.add(domain)
         logger.info(f"🚫 Dominio bloqueado: {domain}")
 
