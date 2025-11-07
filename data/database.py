@@ -26,7 +26,7 @@ class ProxyDatabase:
         await self.conn.close()
     
     async def init_database(self):
-        """Inicializar base de datos SQLite con mejoras"""
+        """Inicializar base de datos SQLite con mejoras - ESQUEMA CORREGIDO"""
         try:
             async with aiosqlite.connect(self.db_path) as db:
                 # Configurar pragmas para mejor rendimiento
@@ -60,12 +60,11 @@ class ProxyDatabase:
                     )
                 ''')
                 
-                # Tabla de configuración
+                # Tabla de configuración - ESQUEMA SIMPLIFICADO
                 await db.execute('''
                     CREATE TABLE IF NOT EXISTS config (
                         key TEXT PRIMARY KEY,
                         value TEXT NOT NULL,
-                        description TEXT,
                         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
                     )
                 ''')
@@ -87,24 +86,37 @@ class ProxyDatabase:
                 await db.execute('CREATE INDEX IF NOT EXISTS idx_requests_status ON requests(status)')
                 await db.execute('CREATE INDEX IF NOT EXISTS idx_domain_rules_blocked ON domain_rules(is_blocked)')
                 
-                # Insertar configuración por defecto
+                # Insertar configuración por defecto - SIN DESCRIPTION
                 default_config = [
-                    ('max_requests_per_minute', '100', 'Límite máximo de peticiones por minuto'),
-                    ('blocked_domains', '', 'Dominios bloqueados separados por coma'),
-                    ('log_level', 'INFO', 'Nivel de logging'),
-                    ('retention_days', '30', 'Días de retención de logs')
+                    ('max_requests_per_minute', '100'),
+                    ('blocked_domains', ''),
+                    ('log_level', 'INFO'),
+                    ('retention_days', '30')
                 ]
                 
                 await db.executemany('''
-                    INSERT OR IGNORE INTO config (key, value, description)
-                    VALUES (?, ?, ?)
+                    INSERT OR IGNORE INTO config (key, value)
+                    VALUES (?, ?)
                 ''', default_config)
                 
                 await db.commit()
-                logger.info("Base de datos inicializada correctamente")
+                logger.info("✅ Base de datos inicializada correctamente")
                 
         except Exception as e:
-            logger.error(f"Error inicializando base de datos: {e}")
+            logger.error(f"❌ Error inicializando base de datos: {e}")
+            raise
+    
+    async def drop_and_recreate_database(self):
+        """Eliminar y recrear la base de datos (para desarrollo)"""
+        try:
+            if self.db_path.exists():
+                self.db_path.unlink()
+                logger.info("🗑️  Base de datos anterior eliminada")
+            
+            await self.init_database()
+            logger.info("✅ Base de datos recreada correctamente")
+        except Exception as e:
+            logger.error(f"❌ Error recreando base de datos: {e}")
             raise
     
     async def log_request(self, domain: str, url: str, status: str, 
@@ -126,7 +138,7 @@ class ProxyDatabase:
                 asyncio.create_task(self._update_statistics(domain, status, response_time))
                 
         except Exception as e:
-            logger.error(f"Error registrando petición: {e}")
+            logger.error(f"❌ Error registrando petición: {e}")
     
     async def _update_statistics(self, domain: str, status: str, response_time: Optional[float] = None):
         """Actualizar estadísticas del dominio de forma optimizada"""
@@ -174,7 +186,7 @@ class ProxyDatabase:
                 await db.commit()
                 
         except Exception as e:
-            logger.error(f"Error actualizando estadísticas: {e}")
+            logger.error(f"❌ Error actualizando estadísticas: {e}")
     
     async def get_domain_stats(self, domain: str) -> Optional[Dict[str, Any]]:
         """Obtener estadísticas de un dominio específico"""
@@ -190,7 +202,7 @@ class ProxyDatabase:
                     return dict(zip(columns, row))
                 return None
         except Exception as e:
-            logger.error(f"Error obteniendo estadísticas: {e}")
+            logger.error(f"❌ Error obteniendo estadísticas: {e}")
             return None
     
     async def get_top_domains(self, limit: int = 10) -> list:
@@ -206,7 +218,7 @@ class ProxyDatabase:
                 ''', (limit,))
                 return await cursor.fetchall()
         except Exception as e:
-            logger.error(f"Error obteniendo top dominios: {e}")
+            logger.error(f"❌ Error obteniendo top dominios: {e}")
             return []
     
     async def cleanup_old_records(self, retention_days: int = 30):
@@ -219,9 +231,9 @@ class ProxyDatabase:
                     (cutoff_date,)
                 )
                 await db.commit()
-                logger.info(f"Registros antiguos eliminados (retención: {retention_days} días)")
+                logger.info(f"🗑️  Registros antiguos eliminados (retención: {retention_days} días)")
         except Exception as e:
-            logger.error(f"Error limpiando registros: {e}")
+            logger.error(f"❌ Error limpiando registros: {e}")
     
     async def get_config_value(self, key: str, default: str = "") -> str:
         """Obtener valor de configuración"""
@@ -234,14 +246,35 @@ class ProxyDatabase:
                 result = await cursor.fetchone()
                 return result[0] if result else default
         except Exception as e:
-            logger.error(f"Error obteniendo configuración: {e}")
+            logger.error(f"❌ Error obteniendo configuración: {e}")
             return default
+
+    async def set_config_value(self, key: str, value: str):
+        """Establecer valor de configuración"""
+        try:
+            async with aiosqlite.connect(self.db_path) as db:
+                await db.execute('''
+                    INSERT OR REPLACE INTO config (key, value, updated_at)
+                    VALUES (?, ?, ?)
+                ''', (key, value, datetime.now()))
+                await db.commit()
+        except Exception as e:
+            logger.error(f"❌ Error estableciendo configuración: {e}")
 
 # Funciones de conveniencia para compatibilidad con código existente
 async def init_database():
     """Función de inicialización compatible con la versión anterior"""
     db = ProxyDatabase()
-    await db.init_database()
+    try:
+        await db.init_database()
+    except Exception as e:
+        logger.error(f"❌ Error en init_database: {e}")
+        # Intentar recrear la base de datos si falla
+        try:
+            await db.drop_and_recreate_database()
+        except Exception as recreate_error:
+            logger.error(f"❌ Error crítico recreando base de datos: {recreate_error}")
+            raise
 
 async def log_request(domain: str, url: str, status: str, **kwargs):
     """Función de log compatible con la versión anterior"""
@@ -253,3 +286,8 @@ async def update_statistics(domain: str, blocked: bool = False):
     status = "BLOCKED" if blocked else "ALLOWED"
     db = ProxyDatabase()
     await db._update_statistics(domain, status)
+
+async def recreate_database():
+    """Función para recrear la base de datos"""
+    db = ProxyDatabase()
+    await db.drop_and_recreate_database()
